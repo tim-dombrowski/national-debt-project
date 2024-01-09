@@ -1,0 +1,308 @@
+---
+title: "U.S. National Debt Over Time"
+date: "Last updated: `r Sys.Date()`"
+output: github_document
+---
+
+## Preliminary Work: Install/Load Packages
+
+The first, preliminary step is to load in all the necessary packages that we will need. The first three lines of this code chunk check if these packages have been installed yet, installs them if necessary, and then loads these packages into our R session.
+
+* The `httr` package lets us easily make the API calls for the data.
+* The `jsonlite` package helps us read the JSON API response and transform it to R data.
+* The `tidyr` package provides tools for working with the data.
+* The `ggplot2` package lets us generate nice graphics to visualize the data.
+* The `zoo` package contains the `rollmean()` function that is used in some visualizations.
+
+```{r setup, results='hide'}
+# Create list of packages needed for this exercise
+list.of.packages <- c("httr", "jsonlite","tidyr","ggplot2","zoo","rmarkdown")
+# Check if any have not yet been installed
+new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+# If any need to be installed, install them
+if(length(new.packages)) install.packages(new.packages)
+# Load in the packages
+library(httr)
+library(jsonlite)
+library(tidyr)
+library(ggplot2)
+library(zoo)
+```
+
+
+## Example API Request
+
+Before requesting the full series of the national debt, we will replicate the example API request from <https://fiscaldata.treasury.gov/datasets/monthly-statement-public-debt/>. For this example, we will break this process down into tiny pieces to explore the steps in the process.
+
+First, we will specify the base url for the fiscal data API.
+
+```{r req1base}
+#urlbase = "https://transparency.treasury.gov/services/api/fiscal_service"
+urlbase = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service"
+```
+
+Then, we add the endpoint for the "Summary of Treasury Securities Outstanding" table. The `paste()` function allows for us to concatenate the two strings to create the full url. The `sep=` option allows for inserting text between the strings being concatenated, which we do not want here. Thus, we enter an empty string as the separator.
+
+```{r reg1end}
+urlend = "v1/debt/mspd/mspd_table_1"
+urlfull = paste(urlbase,urlend,sep="/")
+urlfull
+```
+
+After we create the full url string for the table that we want, the next step is to specify any parameters for the API call, which effectively convey additional instructions for what data we want and how we want it returned. For this example, we want to (1) sort the data by date (`record_date`), (2) specify a JSON response, and (3) retrieve only the first observation after the sorting.
+
+The `-` before `record_date` in the first parameter sorts the dates in descending order so that the most recent observation is at the top. The JSON format option is actually unnecessary as it is the default response format, but if we wanted to receive csv or xml formatted response, we would specify that here. For requesting only the first observation, this consists of two parts: `page[size]` specifies how any observations in each response and `page[number]` specifies which 'page' to request (if we wanted the second observation, then we would keep `page[size]` as is and switch to `page[number]=2`). Note: the first parameter is indicated by `?` and each subsequent parameter is separated with an `&`.
+
+```{r req1opts}
+opt1 = "?sort=-record_date"
+opt2 = "&format=json"
+opt3 = "&page[number]=1&page[size]=1"
+request1 = paste(urlfull,opt1,opt2,opt3,sep='')
+request1
+```
+
+Now we can request the raw data from the API using the `GET()` function.
+
+```{r req1}
+response1 = GET(request1)
+response1
+```
+
+Since the content is returned in raw bytes, we must convert this to text, which will output the JSON response as a character array (we can also use `rawToChar(response1$content)`, which will do the same thing).
+
+```{r req1json}
+jsonresponse1 = content(response1,"text")
+jsonresponse1
+```
+
+Then, to convert this JSON response to something workable in R, we use the `fromJSON()` function to convert the response to an R data frame, which is the data variable in the converted response. Note: use `$` to specify a variable within a data frame. 
+
+```{r req1df}
+dfresponse1 = fromJSON(jsonresponse1)
+myData1 = dfresponse1$data
+myData1
+```
+**Alternatively, we can simply use the `fromJSON()` function on `request1`, which will cut out the intermediate steps (note: `myData1` and `myData` are identical).**
+
+```{r req1df2}
+dfresponse = fromJSON(request1)
+myData = dfresponse$data
+myData
+```
+
+Now that we have this more efficient way of loading the data into R, we need to make sure that the variables are formatted correctly. If we use the `class()` function to examine a few variable formats, we see that everything is formatted as a character array.
+
+```{r req1class, error=TRUE}
+class(myData$record_date)
+class(myData$security_type_desc)
+class(myData$debt_held_public_mil_amt)
+myData$debt_held_public_mil_amt/2
+```
+
+To reformat any non-text variables, we can use the `as()` functions. For this example, we will just format one date and one numeric variable to demonstrate the process.
+
+```{r req1format}
+myData$record_date = as.Date(myData$record_date)
+class(myData$record_date)
+myData$debt_held_public_mil_amt = as.numeric(myData$debt_held_public_mil_amt)
+class(myData$debt_held_public_mil_amt)
+myData$debt_held_public_mil_amt/2
+```
+
+
+## Full API Request
+
+Now that we have worked through the example API request, let's move on to our project's goal of importing the full series of national debt observations.
+
+First, we need to adjust our parameters to reflect this new request. We will reuse `opt1` from `request1` to sort the observations. The next parameter specifies the variables that we want (the last seven variables are mostly redundant so we omit them). The third parameter specifies that we want all of the observations returned in this request (we do this by specifying a large number for `page[size]`).
+
+```{r req2opts}
+req2opt1 = opt1
+req2opt2 = "&fields=record_date,security_type_desc,security_class_desc,debt_held_public_mil_amt,intragov_hold_mil_amt,total_mil_amt"
+req2opt3 = "&page[size]=10000"
+request2 = paste(urlfull,req2opt1,req2opt2,req2opt3,sep="")
+```
+
+Now make the request and save the response as a data frame using `fromJSON()`.
+
+```{r req2}
+dfresponse2 = fromJSON(request2)
+```
+
+Next, extract the data frame and format the variables. Lastly, print the first 20 observations of the data frame to get a better feel for the layout.
+
+```{r req2format}
+debtdf = dfresponse2$data
+# Format datetime variables
+debtdf$record_date = as.Date(debtdf$record_date)
+# Format numeric variables
+debtdf$debt_held_public_mil_amt = as.numeric(debtdf$debt_held_public_mil_amt)
+debtdf$intragov_hold_mil_amt = as.numeric(debtdf$intragov_hold_mil_amt)
+debtdf$total_mil_amt = as.numeric(debtdf$total_mil_amt)
+head(debtdf,20)
+```
+
+To make our figures a little cleaner later, we will also create a new variable that converts the units of the national debt into trillions of $USD, rather than millions.
+
+```{r tril}
+debtdf$total_tril_amt = debtdf$total_mil_amt/1000000
+```
+
+Since the table contains observations for the total national debt along with various subsets, we need to extract the subset of observations corresponding with total debt figures. As with many things in R, there are multiple ways to do this. Two examples the yield identical results are:
+
+```{r req2total}
+totaldebtdf = debtdf[which(debtdf$security_type_desc=="Total Public Debt Outstanding"),]
+totaldebtdf2 = subset(debtdf,security_type_desc=="Total Public Debt Outstanding",)
+```
+
+Now our data frame consists of more than 200 monthly observations of the total national debt beginning in 01/2002. Since we have automated this using the API, every time we run this code, it will automatically fetch the most recent observations. We can also see the breakdown between debt held by the public and debt held by governmental agencies respectively with the columns labelled `debt_held_public_mil_amt` and `intragov_hold_mil_amt`.
+
+```{r req2final}
+head(totaldebtdf,10)
+```
+
+
+## Plotting the Data
+
+### Simple Line Chart
+
+To plot out the national debt over time, we will first use the standard `plot()` function, and a few options to set some labels, which creates a simple line chart plotting the time series.
+
+```{r plotline}
+plot(totaldebtdf$record_date,totaldebtdf$total_tril_amt,type='l',main="U.S. National Debt Over Time",xlab="",ylab="Debt in USD Trillions") 
+```
+
+However, the `ggplot2` package provides lots of extra visualization functionality that can make the plotting process a bit smoother and more capable. Let's replicate the above figure using `ggplot()` to see the differences.
+
+```{r plotggline}
+ggplot(totaldebtdf,aes(x=record_date,y=total_tril_amt)) + 
+  geom_line() +
+  ggtitle("U.S. National Debt over Time") +
+  xlab("") +
+  ylab("Debt in USD Trillions")
+```
+
+### Stacked Line Chart 1: Publicly Held Debt vs. Intragovernmental Holdings
+
+A good way to visually dive deeper into the data is to decompose the debt into different categories based on the groupings provided. The first partition we can make is by debt holder. A portion of the national debt exists as a liability for one governmental agency and an asset for another agency (hence, intragovernmental holdings).
+
+To compare across publicly held debt and intragovernmental holdings, we must first combine the two variables together using the `gather()` function (ggplot2 tends to prefer long panels, rather than wide panels of data), convert the values to trillions, and then plot the stacked area chart using `ggplot()` along with a few labeling options.
+
+```{r plotstack1}
+# Extract relevant variables from totaldebtdf
+helddf = totaldebtdf[,c("record_date","debt_held_public_mil_amt","intragov_hold_mil_amt")]
+# Combine the two `mil_amt` variables into one and create a new variable `Holder` that indicates which observations belong to which category.
+helddf = gather(helddf,"Holder","mil_amt",-record_date)
+# Convert millions to trillions
+helddf$tril_amt = helddf$mil_amt/1000000
+# Plot stacked line chart
+ggplot(helddf, aes(x=record_date, y=tril_amt, fill=Holder)) +
+  geom_area(position='stack') +
+  xlab("") +
+  ylab("Debt in USD Trillions") +
+  labs(title="U.S. National Debt by Debtholder",fill="Debtholder")
+```
+
+This shows that the intragovernmental holdings have tended to be more stable in their growth, whereas the publicly held debt has grown more rapidly over the past decade plus.
+
+### Stacked Line Chart 2: Debt by Marketability
+
+Another way to partition the data is by debt marketability, which is indicated by the `security_type_desc` variable in `debtdf`. This variable already is in a long panel format, so all we need to do is remove all the extra observations for the further subsets and aggregates. Practically, this is effectively the same partition as the previous debt holder split. So the main point for this is how one might plot such a stacked line chart when the group labels are in a single, categorical variable, rather than separate variables.
+
+```{r plotstack2}
+# Extract relevant observations from debtdf (only need subtotals for marketable and nonmarketable debt)
+stackdf = subset(debtdf,security_type_desc%in%c("Total Marketable","Total Nonmarketable"),)
+# Plot stacked line chart (no extra steps since categories are already in correct vertical format)
+ggplot(stackdf, aes(x=record_date, y=total_tril_amt, fill=security_type_desc)) +
+  geom_area(position = 'stack') +
+  xlab("") +
+  ylab("Debt in USD Trillions") +
+  labs(title="U.S. National Debt Over Time by Marketability",fill="Marketability")
+```
+
+### Stacked Line Chart 3: Debt by Security Class
+
+Lastly, we can make use of all the smallest subsets to show a more detailed breakdown of the debt. However, due to the fairly large number of categories, the most optimal way to present this data likely would involve aggregating similar categories to maybe 4-5 groups.
+
+```{r plotstack3}
+# Extract relevant observations (remove subtotals and totals; keep only the individual security classes)
+secclassdf = subset(debtdf,security_class_desc!="_")
+# Plot the stacked line chart
+ggplot(secclassdf, aes(x=record_date, y=total_tril_amt, fill=security_class_desc)) +
+  geom_area(position = 'stack') +
+  xlab("") +
+  ylab("Debt in USD Trillions") +
+  labs(title="U.S. National Debt by Security Class",fill="Security Class")
+```
+
+### Histogram: Continuously Compounded Growth
+
+As the final exercise in this demonstration, we will convert the monthly levels of the national debt into annualized growth measurements, which generally is the more appropriate format for analyzing financial data such as this. The rationale is a bit more statistically nuanced (see [Stationarity](https://www.r-econometrics.com/timeseries/stationarity/) and [Unit](https://medium.com/codex/unit-root-in-time-series-38d451d742ce) [Roots](https://www.mathworks.com/help/econ/unit-root-nonstationarity.html)), but the general idea is that these 'log returns' better approximated by the normal distribution than the 'levels' or 'prices' of financial variables. Thus, statistical inferences that rely on the assumption of normality are more appropriate when modelling stock returns, rather than stock prices.
+
+The code chunk below combines a couple steps. The first thing to note is that when converting to rates of growth, we lose one observation of time. This is due to not having a previous (lag) value to compare the earliest observation to. Thus, we insert an `NA` to fill the lost observation with a missing value (the `c()` function combines two vectors into one). Then the differences in the natural logarithms of the national debt are taken, which effectively shifts units from levels to growth rates. Then lastly, we annualize the monthly growth rates by multiplying by 12, and convert to percentage units by multiplying by 100.
+
+```{r retconv}
+totaldebtdf$annpct = c(-diff(log(totaldebtdf$total_tril_amt)),NA)*12*100
+```
+
+To visualize the historical growth rates, we plot each month's annualized growth rate using bars `geom_col()`. This shows a fair amount of variation from month to month. To see a more informative trend over time, we also plot the rolling averages for windows of 12 months (red) and 60 months (blue). As can be seen in the figure, the larger the rolling window, the smoother the trend becomes.
+
+```{r plotrets}
+ggplot(totaldebtdf,aes(x=record_date, y=annpct))+
+  geom_col()+
+  geom_line(aes(y=rollmean(annpct, 12, na.pad=TRUE)), colour="red", linewidth=1) +
+  geom_line(aes(y=rollmean(annpct, 60, na.pad=TRUE)), colour="blue", linewidth=1) +
+  ggtitle("Annualized, Continuously Compounded Growth in U.S. National Debt") +
+  xlab("") +
+  ylab("Annualized Growth Rate")
+```
+
+Then to hammer home the point regarding statistical normality. Let's plot the frequency histograms for each the national debt levels, logs, and growth rates. In addition to the histograms, the red lines plot a normal ([Gaussian](https://mathworld.wolfram.com/NormalDistribution.html)) bell curve constructed from the empirical means and standard deviations. The levels histogram is shows a very non-normal shape for the data. Then after taking the natural logarithm of the debt levels, this appears to center the fitted bell curve. Then, after differencing the logs to get growth rates, that histogram leads to an even better fitting bell curve to represent the return distribution. Interestingly, there are several outliers on the positive growth side, and only one outlier in the negative direction. That one negative outlier corresponds to the very first observation in the dataset, April 2001.
+
+```{r histplots}
+# Set desired binwidth and number of non-missing obs
+bw = 1
+n_obs = sum(!is.na(totaldebtdf$annpct))
+
+ggplot(totaldebtdf,aes(total_tril_amt)) +
+  geom_histogram(binwidth=bw) +
+  stat_function(fun=function(x) dnorm(x, mean=mean(totaldebtdf$annpct, na.rm=TRUE),   sd=sd(totaldebtdf$annpct, na.rm=TRUE)) * n_obs * bw, color = "darkred", linewidth = 1) +
+  xlab("Total Debt (in USD Trillions)") +
+  ylab("Frequency")
+
+ggplot(totaldebtdf,aes(log(total_tril_amt))) +
+  geom_histogram(binwidth=0.1) +
+  stat_function(fun=function(x) dnorm(x, mean=mean(log(totaldebtdf$total_tril_amt), na.rm=TRUE),   sd=sd(log(totaldebtdf$total_tril_amt), na.rm=TRUE)) * n_obs * 0.1, color = "darkred", linewidth = 1) +
+  xlab("Total Debt (in Log USD Trillions)") +
+  ylab("Frequency")
+
+ggplot(totaldebtdf,aes(annpct)) +
+  geom_histogram(binwidth=bw) +
+  stat_function(fun=function(x) dnorm(x, mean=mean(totaldebtdf$annpct, na.rm=TRUE),   sd=sd(totaldebtdf$annpct, na.rm=TRUE)) * n_obs * bw, color = "darkred", linewidth = 1) +
+  xlab("Annualized Growth Rates") +
+  ylab("Frequency")
+```
+
+
+## Summary Statistics
+
+Lastly, let's compute some summary statistics of the annualized growth rates to relate some numbers to the fitted bell curve above, which is defined by the mean and standard deviation. Additionally, the `summary()` function also provides the quartiles of the empirical distribution.
+
+```{r sumstats}
+mean(totaldebtdf$annpct, na.rm=TRUE) |> round(2)
+sd(totaldebtdf$annpct, na.rm=TRUE) |> round(2)
+summary(totaldebtdf$annpct) |> round(2)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+

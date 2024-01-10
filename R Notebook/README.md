@@ -1,6 +1,6 @@
 U.S. National Debt Over Time
 ================
-Last updated: 2024-01-09
+Last updated: 2024-01-10
 
 ## Preliminary Work: Install/Load Packages
 
@@ -9,24 +9,34 @@ that we will need. The first three lines of this code chunk check if
 these packages have been installed yet, installs them if necessary, and
 then loads these packages into our R session.
 
-- The `httr` package lets us easily make the API calls for the data.
-- The `jsonlite` package helps us read the JSON API response and
-  transform it to R data.
-- The `tidyr` package provides tools for working with the data.
-- The `ggplot2` package lets us generate nice graphics to visualize the
-  data.
-- The `zoo` package contains the `rollmean()` function that is used in
-  some visualizations.
+- The [httr2 package](https://cran.r-project.org/package=httr2) lets us
+  easily make the API calls for the data.
+  - The original version of this demo used the httr package to perform
+    the Example API Request and was updated in January 2024 to make use
+    of the httr2 package. See the [httr2
+    announcement](https://www.tidyverse.org/blog/2023/11/httr2-1-0-0/)
+    from November 2023 for more details about this update.
+- The [httpuv package](https://cran.r-project.org/package=httpuv) is
+  used by httr2 to perform the [HTTP
+  requests](https://search.brave.com/search?q=HTTP).
+- The [jsonlite package](https://cran.r-project.org/package=jsonlite)
+  helps us read the JSON API response and transform it to R data.
+- The [tidyr package](https://cran.r-project.org/package=tidyr) provides
+  tools for working with the data.
+- The [ggplot2 package](https://cran.r-project.org/package=ggplot2) lets
+  us generate nice graphics to visualize the data.
+- The [zoo package](https://cran.r-project.org/package=zoo) contains the
+  `rollmean()` function that is used in some visualizations.
 
 ``` r
 # Create list of packages needed for this exercise
-list.of.packages <- c("httr", "jsonlite","tidyr","ggplot2","zoo","rmarkdown")
+list.of.packages <- c("httr2", "jsonlite","tidyr","ggplot2","zoo","rmarkdown")
 # Check if any have not yet been installed
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 # If any need to be installed, install them
 if(length(new.packages)) install.packages(new.packages)
 # Load in the packages
-library(httr)
+library(httr2)
 library(jsonlite)
 library(tidyr)
 library(ggplot2)
@@ -45,13 +55,16 @@ library(zoo)
 Before requesting the full series of the national debt, we will
 replicate the example API request from
 <https://fiscaldata.treasury.gov/datasets/monthly-statement-public-debt/>.
-For this example, we will break this process down into tiny pieces to
-explore the steps in the process.
+This has been adapted to make use of the updated httr2 package, rather
+than the httr package that was originally used. For this example, we
+will break this process down into tiny pieces to explore the steps in
+the process.
+
+#### Construct the API GET Request
 
 First, we will specify the base url for the fiscal data API.
 
 ``` r
-#urlbase = "https://transparency.treasury.gov/services/api/fiscal_service"
 urlbase = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service"
 ```
 
@@ -69,9 +82,9 @@ urlfull
 
     ## [1] "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/debt/mspd/mspd_table_1"
 
-After we create the full url string for the table that we want, the next
-step is to specify any parameters for the API call, which effectively
-convey additional instructions for what data we want and how we want it
+After we create the url string for the table that we want, the next step
+is to specify any parameters for the API call, which effectively convey
+additional instructions for what data we want and how we want it
 returned. For this example, we want to (1) sort the data by date
 (`record_date`), (2) specify a JSON response, and (3) retrieve only the
 first observation after the sorting.
@@ -91,48 +104,203 @@ by `?` and each subsequent parameter is separated with an `&`.
 opt1 = "?sort=-record_date"
 opt2 = "&format=json"
 opt3 = "&page[number]=1&page[size]=1"
-request1 = paste(urlfull,opt1,opt2,opt3,sep='')
-request1
+req1 = paste(urlfull,opt1,opt2,opt3,sep='')
+req1
 ```
 
     ## [1] "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/debt/mspd/mspd_table_1?sort=-record_date&format=json&page[number]=1&page[size]=1"
 
-Now we can request the raw data from the API using the `GET()` function.
+#### Make the Request
+
+Now, we’ll use the `request()` function from the httr2 package to save
+this url string as a request object. If we examine the contents of this
+object, `request1`, we can see that it transformed the text of the url
+into an API request that makes use of the GET method. See the [Brave
+Code LLM output](https://search.brave.com/search?q=RESTful+API) for more
+context around the methods for RESTful APIs.
 
 ``` r
-response1 = GET(request1)
-response1
+request1 = request(req1)
+request1
 ```
 
-    ## Response [https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/debt/mspd/mspd_table_1?sort=-record_date&format=json&page[number]=1&page[size]=1]
-    ##   Date: 2024-01-09 22:11
-    ##   Status: 200
-    ##   Content-Type: application/json
-    ##   Size: 2.1 kB
+    ## <httr2_request>
 
-Since the content is returned in raw bytes, we must convert this to
-text, which will output the JSON response as a character array (we can
-also use `rawToChar(response1$content)`, which will do the same thing).
+    ## GET
+    ## https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/debt/mspd/mspd_table_1?sort=-record_date&format=json&page[number]=1&page[size]=1
+
+    ## Body: empty
+
+Following the process outlined in the [httr2 announcement
+post](https://www.tidyverse.org/blog/2023/11/httr2-1-0-0/), we can do a
+dry run of a call to this API endpoint using the `req_dry_run()`
+function. That post also shows some examples for how you can further
+edit the parameters of your request using the functions beginning with
+`req_`.
 
 ``` r
-jsonresponse1 = content(response1,"text")
+request1 |> req_dry_run()
 ```
 
-    ## No encoding supplied: defaulting to UTF-8.
+    ## GET /services/api/fiscal_service/v1/debt/mspd/mspd_table_1?sort=-record_date&format=json&page[number]=1&page[size]=1 HTTP/1.1
+    ## Host: api.fiscaldata.treasury.gov
+    ## User-Agent: httr2/1.0.0 r-curl/5.2.0 libcurl/8.3.0
+    ## Accept: */*
+    ## Accept-Encoding: deflate, gzip
+
+Then we can execute the API request using the `req_perform()` function.
+To view the full, raw contents of the response from the server, the
+`req_raw()` function will output those contents. This data includes not
+just the requested fiscal data, but also metadata about the request.
+This can help troubleshoot any errors in the request, but for this
+example, it should run without errors. However, see what you can learn
+about these various metadata components.
 
 ``` r
-jsonresponse1
+response1 = req_perform(request1)
+response1 |> resp_raw()
+```
+
+    ## HTTP/1.1 200 OK
+    ## Date: Wed, 10 Jan 2024 19:17:23 GMT
+    ## Content-Type: application/json
+    ## Content-Length: 854
+    ## Connection: keep-alive
+    ## Server: nginx
+    ## X-Content-Type-Options: nosniff
+    ## X-XSS-Protection: 1; mode=block
+    ## Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+    ## Pragma: no-cache
+    ## Expires: 0
+    ## Strict-Transport-Security: max-age=31536000 ; includeSubDomains
+    ## X-Frame-Options: DENY
+    ## Vary: Accept-Encoding, User-Agent
+    ## Content-Encoding: gzip
+    ## Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+    ## X-Frame-Options: SAMEORIGIN
+    ## X-XSS-Protection: 1; mode=block
+    ## Access-Control-Allow-Origin: *
+    ## Set-Cookie: cookiesession1=678A3E0E0583D036B3AD2F87E53F63EF;Expires=Thu, 09 Jan 2025 19:17:23 GMT;Path=/;HttpOnly
+    ## 
+    ## {"data":[{"record_date":"2023-12-31","security_type_desc":"Marketable","security_class_desc":"Bills","debt_held_public_mil_amt":"5674825.4005","intragov_hold_mil_amt":"955.663","total_mil_amt":"5675781.0635","src_line_nbr":"1","record_fiscal_year":"2024","record_fiscal_quarter":"1","record_calendar_year":"2023","record_calendar_quarter":"4","record_calendar_month":"12","record_calendar_day":"31"}],"meta":{"count":1,"labels":{"record_date":"Record Date","security_type_desc":"Security Type Description","security_class_desc":"Security Class Description","debt_held_public_mil_amt":"Debt Held by the Public (in Millions)","intragov_hold_mil_amt":"Intragovernmental Holdings (in Millions)","total_mil_amt":"Total Public Debt Outstanding (in Millions)","src_line_nbr":"Source Line Number","record_fiscal_year":"Fiscal Year","record_fiscal_quarter":"Fiscal Quarter Number","record_calendar_year":"Calendar Year","record_calendar_quarter":"Calendar Quarter Number","record_calendar_month":"Calendar Month Number","record_calendar_day":"Calendar Day Number"},"dataTypes":{"record_date":"DATE","security_type_desc":"STRING","security_class_desc":"STRING","debt_held_public_mil_amt":"CURRENCY","intragov_hold_mil_amt":"CURRENCY","total_mil_amt":"CURRENCY","src_line_nbr":"INTEGER","record_fiscal_year":"YEAR","record_fiscal_quarter":"QUARTER","record_calendar_year":"YEAR","record_calendar_quarter":"QUARTER","record_calendar_month":"MONTH","record_calendar_day":"DAY"},"dataFormats":{"record_date":"YYYY-MM-DD","security_type_desc":"String","security_class_desc":"String","debt_held_public_mil_amt":"$10.20","intragov_hold_mil_amt":"$10.20","total_mil_amt":"$10.20","src_line_nbr":"10","record_fiscal_year":"YYYY","record_fiscal_quarter":"Q","record_calendar_year":"YYYY","record_calendar_quarter":"Q","record_calendar_month":"MM","record_calendar_day":"DD"},"total-count":4211,"total-pages":4211},"links":{"self":"&page%5Bnumber%5D=1&page%5Bsize%5D=1","first":"&page%5Bnumber%5D=1&page%5Bsize%5D=1","prev":null,"next":"&page%5Bnumber%5D=2&page%5Bsize%5D=1","last":"&page%5Bnumber%5D=4211&page%5Bsize%5D=1"}}
+
+#### Explore the Response
+
+If we examine the string output of the response’s body, this should be
+identifiable as a JSON format in a raw text output. We can extract this
+portion of the response using the `resp_body_string()` function. This
+will be the format that we convert to an R data frame; however, before
+we do that, we’ll first explore some of the other httr2 tools for
+examining the contents of the response.
+
+``` r
+response1body = resp_body_string(response1)
+response1body
 ```
 
     ## [1] "{\"data\":[{\"record_date\":\"2023-12-31\",\"security_type_desc\":\"Marketable\",\"security_class_desc\":\"Bills\",\"debt_held_public_mil_amt\":\"5674825.4005\",\"intragov_hold_mil_amt\":\"955.663\",\"total_mil_amt\":\"5675781.0635\",\"src_line_nbr\":\"1\",\"record_fiscal_year\":\"2024\",\"record_fiscal_quarter\":\"1\",\"record_calendar_year\":\"2023\",\"record_calendar_quarter\":\"4\",\"record_calendar_month\":\"12\",\"record_calendar_day\":\"31\"}],\"meta\":{\"count\":1,\"labels\":{\"record_date\":\"Record Date\",\"security_type_desc\":\"Security Type Description\",\"security_class_desc\":\"Security Class Description\",\"debt_held_public_mil_amt\":\"Debt Held by the Public (in Millions)\",\"intragov_hold_mil_amt\":\"Intragovernmental Holdings (in Millions)\",\"total_mil_amt\":\"Total Public Debt Outstanding (in Millions)\",\"src_line_nbr\":\"Source Line Number\",\"record_fiscal_year\":\"Fiscal Year\",\"record_fiscal_quarter\":\"Fiscal Quarter Number\",\"record_calendar_year\":\"Calendar Year\",\"record_calendar_quarter\":\"Calendar Quarter Number\",\"record_calendar_month\":\"Calendar Month Number\",\"record_calendar_day\":\"Calendar Day Number\"},\"dataTypes\":{\"record_date\":\"DATE\",\"security_type_desc\":\"STRING\",\"security_class_desc\":\"STRING\",\"debt_held_public_mil_amt\":\"CURRENCY\",\"intragov_hold_mil_amt\":\"CURRENCY\",\"total_mil_amt\":\"CURRENCY\",\"src_line_nbr\":\"INTEGER\",\"record_fiscal_year\":\"YEAR\",\"record_fiscal_quarter\":\"QUARTER\",\"record_calendar_year\":\"YEAR\",\"record_calendar_quarter\":\"QUARTER\",\"record_calendar_month\":\"MONTH\",\"record_calendar_day\":\"DAY\"},\"dataFormats\":{\"record_date\":\"YYYY-MM-DD\",\"security_type_desc\":\"String\",\"security_class_desc\":\"String\",\"debt_held_public_mil_amt\":\"$10.20\",\"intragov_hold_mil_amt\":\"$10.20\",\"total_mil_amt\":\"$10.20\",\"src_line_nbr\":\"10\",\"record_fiscal_year\":\"YYYY\",\"record_fiscal_quarter\":\"Q\",\"record_calendar_year\":\"YYYY\",\"record_calendar_quarter\":\"Q\",\"record_calendar_month\":\"MM\",\"record_calendar_day\":\"DD\"},\"total-count\":4211,\"total-pages\":4211},\"links\":{\"self\":\"&page%5Bnumber%5D=1&page%5Bsize%5D=1\",\"first\":\"&page%5Bnumber%5D=1&page%5Bsize%5D=1\",\"prev\":null,\"next\":\"&page%5Bnumber%5D=2&page%5Bsize%5D=1\",\"last\":\"&page%5Bnumber%5D=4211&page%5Bsize%5D=1\"}}"
 
-Then, to convert this JSON response to something workable in R, we use
-the `fromJSON()` function to convert the response to an R data frame,
-which is the data variable in the converted response. Note: use `$` to
-specify a variable within a data frame.
+If we apply the `resp_body_json()` and `str()` functions to the
+response, this gives a bit more structure to the data retrieved from the
+response. Note the additional fields beyond just the numeric data that
+pertains to the formatting of those variables.
 
 ``` r
-dfresponse1 = fromJSON(jsonresponse1)
+response1 |> resp_body_json() |> str()
+```
+
+    ## List of 3
+    ##  $ data :List of 1
+    ##   ..$ :List of 13
+    ##   .. ..$ record_date             : chr "2023-12-31"
+    ##   .. ..$ security_type_desc      : chr "Marketable"
+    ##   .. ..$ security_class_desc     : chr "Bills"
+    ##   .. ..$ debt_held_public_mil_amt: chr "5674825.4005"
+    ##   .. ..$ intragov_hold_mil_amt   : chr "955.663"
+    ##   .. ..$ total_mil_amt           : chr "5675781.0635"
+    ##   .. ..$ src_line_nbr            : chr "1"
+    ##   .. ..$ record_fiscal_year      : chr "2024"
+    ##   .. ..$ record_fiscal_quarter   : chr "1"
+    ##   .. ..$ record_calendar_year    : chr "2023"
+    ##   .. ..$ record_calendar_quarter : chr "4"
+    ##   .. ..$ record_calendar_month   : chr "12"
+    ##   .. ..$ record_calendar_day     : chr "31"
+    ##  $ meta :List of 6
+    ##   ..$ count      : int 1
+    ##   ..$ labels     :List of 13
+    ##   .. ..$ record_date             : chr "Record Date"
+    ##   .. ..$ security_type_desc      : chr "Security Type Description"
+    ##   .. ..$ security_class_desc     : chr "Security Class Description"
+    ##   .. ..$ debt_held_public_mil_amt: chr "Debt Held by the Public (in Millions)"
+    ##   .. ..$ intragov_hold_mil_amt   : chr "Intragovernmental Holdings (in Millions)"
+    ##   .. ..$ total_mil_amt           : chr "Total Public Debt Outstanding (in Millions)"
+    ##   .. ..$ src_line_nbr            : chr "Source Line Number"
+    ##   .. ..$ record_fiscal_year      : chr "Fiscal Year"
+    ##   .. ..$ record_fiscal_quarter   : chr "Fiscal Quarter Number"
+    ##   .. ..$ record_calendar_year    : chr "Calendar Year"
+    ##   .. ..$ record_calendar_quarter : chr "Calendar Quarter Number"
+    ##   .. ..$ record_calendar_month   : chr "Calendar Month Number"
+    ##   .. ..$ record_calendar_day     : chr "Calendar Day Number"
+    ##   ..$ dataTypes  :List of 13
+    ##   .. ..$ record_date             : chr "DATE"
+    ##   .. ..$ security_type_desc      : chr "STRING"
+    ##   .. ..$ security_class_desc     : chr "STRING"
+    ##   .. ..$ debt_held_public_mil_amt: chr "CURRENCY"
+    ##   .. ..$ intragov_hold_mil_amt   : chr "CURRENCY"
+    ##   .. ..$ total_mil_amt           : chr "CURRENCY"
+    ##   .. ..$ src_line_nbr            : chr "INTEGER"
+    ##   .. ..$ record_fiscal_year      : chr "YEAR"
+    ##   .. ..$ record_fiscal_quarter   : chr "QUARTER"
+    ##   .. ..$ record_calendar_year    : chr "YEAR"
+    ##   .. ..$ record_calendar_quarter : chr "QUARTER"
+    ##   .. ..$ record_calendar_month   : chr "MONTH"
+    ##   .. ..$ record_calendar_day     : chr "DAY"
+    ##   ..$ dataFormats:List of 13
+    ##   .. ..$ record_date             : chr "YYYY-MM-DD"
+    ##   .. ..$ security_type_desc      : chr "String"
+    ##   .. ..$ security_class_desc     : chr "String"
+    ##   .. ..$ debt_held_public_mil_amt: chr "$10.20"
+    ##   .. ..$ intragov_hold_mil_amt   : chr "$10.20"
+    ##   .. ..$ total_mil_amt           : chr "$10.20"
+    ##   .. ..$ src_line_nbr            : chr "10"
+    ##   .. ..$ record_fiscal_year      : chr "YYYY"
+    ##   .. ..$ record_fiscal_quarter   : chr "Q"
+    ##   .. ..$ record_calendar_year    : chr "YYYY"
+    ##   .. ..$ record_calendar_quarter : chr "Q"
+    ##   .. ..$ record_calendar_month   : chr "MM"
+    ##   .. ..$ record_calendar_day     : chr "DD"
+    ##   ..$ total-count: int 4211
+    ##   ..$ total-pages: int 4211
+    ##  $ links:List of 5
+    ##   ..$ self : chr "&page%5Bnumber%5D=1&page%5Bsize%5D=1"
+    ##   ..$ first: chr "&page%5Bnumber%5D=1&page%5Bsize%5D=1"
+    ##   ..$ prev : NULL
+    ##   ..$ next : chr "&page%5Bnumber%5D=2&page%5Bsize%5D=1"
+    ##   ..$ last : chr "&page%5Bnumber%5D=4211&page%5Bsize%5D=1"
+
+Another neat way to explore the data is with the machine-level language
+that is being used in the data transmission. If we use the
+`resp_body_raw()` function, that will output the [raw hexadecimal
+bytes](https://search.brave.com/search?q=hexadecimal+bytes) that
+represent the content of the response. Let’s just output the first 100
+bytes of the hexadecimal response below:
+
+``` r
+response1 |> resp_body_raw() |> head(100)
+```
+
+    ##   [1] 7b 22 64 61 74 61 22 3a 5b 7b 22 72 65 63 6f 72 64 5f 64 61 74 65 22 3a 22
+    ##  [26] 32 30 32 33 2d 31 32 2d 33 31 22 2c 22 73 65 63 75 72 69 74 79 5f 74 79 70
+    ##  [51] 65 5f 64 65 73 63 22 3a 22 4d 61 72 6b 65 74 61 62 6c 65 22 2c 22 73 65 63
+    ##  [76] 75 72 69 74 79 5f 63 6c 61 73 73 5f 64 65 73 63 22 3a 22 42 69 6c 6c 73 22
+
+#### Transform to R Object
+
+Now, we’ll use the `fromJSON()` function from the jsonlite package to
+convert the JSON string of `response1body` into an R data frame.
+
+``` r
+dfresponse1 = fromJSON(response1body)
 myData1 = dfresponse1$data
 myData1
 ```
@@ -151,7 +319,7 @@ myData1
 and `myData` are identical).**
 
 ``` r
-dfresponse = fromJSON(request1)
+dfresponse = fromJSON(req1)
 myData = dfresponse$data
 myData
 ```

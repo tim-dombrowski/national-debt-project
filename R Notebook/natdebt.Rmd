@@ -8,21 +8,23 @@ output: html_notebook
 
 The first, preliminary step is to load in all the necessary packages that we will need. The first three lines of this code chunk check if these packages have been installed yet, installs them if necessary, and then loads these packages into our R session.
 
-* The `httr` package lets us easily make the API calls for the data.
-* The `jsonlite` package helps us read the JSON API response and transform it to R data.
-* The `tidyr` package provides tools for working with the data.
-* The `ggplot2` package lets us generate nice graphics to visualize the data.
-* The `zoo` package contains the `rollmean()` function that is used in some visualizations.
+* The [httr2 package](https://cran.r-project.org/package=httr2) lets us easily make the API calls for the data.
+  * The original version of this demo used the httr package to perform the Example API Request and was updated in January 2024 to make use of the httr2 package. See the [httr2 announcement](https://www.tidyverse.org/blog/2023/11/httr2-1-0-0/) from November 2023 for more details about this update.
+* The [httpuv package](https://cran.r-project.org/package=httpuv) is used by httr2 to perform the [HTTP requests](https://search.brave.com/search?q=HTTP).
+* The [jsonlite package](https://cran.r-project.org/package=jsonlite) helps us read the JSON API response and transform it to R data.
+* The [tidyr package](https://cran.r-project.org/package=tidyr) provides tools for working with the data.
+* The [ggplot2 package](https://cran.r-project.org/package=ggplot2) lets us generate nice graphics to visualize the data.
+* The [zoo package](https://cran.r-project.org/package=zoo) contains the `rollmean()` function that is used in some visualizations.
 
 ```{r setup, results='hide'}
 # Create list of packages needed for this exercise
-list.of.packages <- c("httr", "jsonlite","tidyr","ggplot2","zoo","rmarkdown")
+list.of.packages <- c("httr2", "jsonlite","tidyr","ggplot2","zoo","rmarkdown")
 # Check if any have not yet been installed
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 # If any need to be installed, install them
 if(length(new.packages)) install.packages(new.packages)
 # Load in the packages
-library(httr)
+library(httr2)
 library(jsonlite)
 library(tidyr)
 library(ggplot2)
@@ -32,12 +34,13 @@ library(zoo)
 
 ## Example API Request
 
-Before requesting the full series of the national debt, we will replicate the example API request from <https://fiscaldata.treasury.gov/datasets/monthly-statement-public-debt/>. For this example, we will break this process down into tiny pieces to explore the steps in the process.
+Before requesting the full series of the national debt, we will replicate the example API request from <https://fiscaldata.treasury.gov/datasets/monthly-statement-public-debt/>. This has been adapted to make use of the updated httr2 package, rather than the httr package that was originally used. For this example, we will break this process down into tiny pieces to explore the steps in the process.
+
+#### Construct the API GET Request
 
 First, we will specify the base url for the fiscal data API.
 
 ```{r req1base}
-#urlbase = "https://transparency.treasury.gov/services/api/fiscal_service"
 urlbase = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service"
 ```
 
@@ -49,7 +52,7 @@ urlfull = paste(urlbase,urlend,sep="/")
 urlfull
 ```
 
-After we create the full url string for the table that we want, the next step is to specify any parameters for the API call, which effectively convey additional instructions for what data we want and how we want it returned. For this example, we want to (1) sort the data by date (`record_date`), (2) specify a JSON response, and (3) retrieve only the first observation after the sorting.
+After we create the url string for the table that we want, the next step is to specify any parameters for the API call, which effectively convey additional instructions for what data we want and how we want it returned. For this example, we want to (1) sort the data by date (`record_date`), (2) specify a JSON response, and (3) retrieve only the first observation after the sorting.
 
 The `-` before `record_date` in the first parameter sorts the dates in descending order so that the most recent observation is at the top. The JSON format option is actually unnecessary as it is the default response format, but if we wanted to receive csv or xml formatted response, we would specify that here. For requesting only the first observation, this consists of two parts: `page[size]` specifies how any observations in each response and `page[number]` specifies which 'page' to request (if we wanted the second observation, then we would keep `page[size]` as is and switch to `page[number]=2`). Note: the first parameter is indicated by `?` and each subsequent parameter is separated with an `&`.
 
@@ -57,35 +60,66 @@ The `-` before `record_date` in the first parameter sorts the dates in descendin
 opt1 = "?sort=-record_date"
 opt2 = "&format=json"
 opt3 = "&page[number]=1&page[size]=1"
-request1 = paste(urlfull,opt1,opt2,opt3,sep='')
+req1 = paste(urlfull,opt1,opt2,opt3,sep='')
+req1
+```
+
+#### Make the Request
+
+Now, we'll use the `request()` function from the httr2 package to save this url string as a request object. If we examine the contents of this object, `request1`, we can see that it transformed the text of the url into an API request that makes use of the GET method. See the [Brave Code LLM output](https://search.brave.com/search?q=RESTful+API) for more context around the methods for RESTful APIs.
+
+```{r req1}
+request1 = request(req1)
 request1
 ```
 
-Now we can request the raw data from the API using the `GET()` function.
+Following the process outlined in the [httr2 announcement post](https://www.tidyverse.org/blog/2023/11/httr2-1-0-0/), we can do a dry run of a call to this API endpoint using the `req_dry_run()` function. That post also shows some examples for how you can further edit the parameters of your request using the functions beginning with `req_`.
 
-```{r req1}
-response1 = GET(request1)
-response1
+```{r req1dry}
+request1 |> req_dry_run()
 ```
 
-Since the content is returned in raw bytes, we must convert this to text, which will output the JSON response as a character array (we can also use `rawToChar(response1$content)`, which will do the same thing).
+Then we can execute the API request using the `req_perform()` function. To view the full, raw contents of the response from the server, the `req_raw()` function will output those contents. This data includes not just the requested fiscal data, but also metadata about the request. This can help troubleshoot any errors in the request, but for this example, it should run without errors. However, see what you can learn about these various metadata components.
+
+```{r req1response}
+response1 = req_perform(request1)
+response1 |> resp_raw()
+```
+
+#### Explore the Response
+
+If we examine the string output of the response's body, this should be identifiable as a JSON format in a raw text output. We can extract this portion of the response using the `resp_body_string()` function. This will be the format that we convert to an R data frame; however, before we do that, we'll first explore some of the other httr2 tools for examining the contents of the response.
+
+```{r req1body}
+response1body = resp_body_string(response1)
+response1body
+```
+
+If we apply the `resp_body_json()` and `str()` functions to the response, this gives a bit more structure to the data retrieved from the response. Note the additional fields beyond just the numeric data that pertains to the formatting of those variables.
 
 ```{r req1json}
-jsonresponse1 = content(response1,"text")
-jsonresponse1
+response1 |> resp_body_json() |> str()
 ```
 
-Then, to convert this JSON response to something workable in R, we use the `fromJSON()` function to convert the response to an R data frame, which is the data variable in the converted response. Note: use `$` to specify a variable within a data frame. 
+Another neat way to explore the data is with the machine-level language that is being used in the data transmission. If we use the `resp_body_raw()` function, that will output the [raw hexadecimal bytes](https://search.brave.com/search?q=hexadecimal+bytes) that represent the content of the response. Let's just output the first 100 bytes of the hexadecimal response below:
+
+```{r req1raw}
+response1 |> resp_body_raw() |> head(100)
+```
+
+#### Transform to R Object
+
+Now, we'll use the `fromJSON()` function from the jsonlite package to convert the JSON string of `response1body` into an R data frame.
 
 ```{r req1df}
-dfresponse1 = fromJSON(jsonresponse1)
+dfresponse1 = fromJSON(response1body)
 myData1 = dfresponse1$data
 myData1
 ```
 **Alternatively, we can simply use the `fromJSON()` function on `request1`, which will cut out the intermediate steps (note: `myData1` and `myData` are identical).**
 
 ```{r req1df2}
-dfresponse = fromJSON(request1)
+dfresponse = fromJSON(req1)
 myData = dfresponse$data
 myData
 ```

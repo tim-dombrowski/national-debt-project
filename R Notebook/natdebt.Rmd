@@ -18,13 +18,14 @@ The first, preliminary step is to load in all the necessary packages that we wil
 
 ```{r setup, results='hide'}
 # Create list of packages needed for this exercise
-list.of.packages <- c("httr2", "jsonlite","tidyr","ggplot2","zoo","rmarkdown")
+list.of.packages <- c("httr2", "httpuv", "jsonlite","tidyr","ggplot2","zoo","rmarkdown")
 # Check if any have not yet been installed
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 # If any need to be installed, install them
 if(length(new.packages)) install.packages(new.packages)
 # Load in the packages
 library(httr2)
+library(httpuv)
 library(jsonlite)
 library(tidyr)
 library(ggplot2)

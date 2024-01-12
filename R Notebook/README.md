@@ -1,6 +1,6 @@
 U.S. National Debt Over Time
 ================
-Last updated: 2024-01-10
+Last updated: 2024-01-12
 
 ## Preliminary Work: Install/Load Packages
 
@@ -30,13 +30,14 @@ then loads these packages into our R session.
 
 ``` r
 # Create list of packages needed for this exercise
-list.of.packages <- c("httr2", "jsonlite","tidyr","ggplot2","zoo","rmarkdown")
+list.of.packages <- c("httr2", "httpuv", "jsonlite","tidyr","ggplot2","zoo","rmarkdown")
 # Check if any have not yet been installed
 new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
 # If any need to be installed, install them
 if(length(new.packages)) install.packages(new.packages)
 # Load in the packages
 library(httr2)
+library(httpuv)
 library(jsonlite)
 library(tidyr)
 library(ggplot2)
@@ -162,7 +163,7 @@ response1 |> resp_raw()
 ```
 
     ## HTTP/1.1 200 OK
-    ## Date: Wed, 10 Jan 2024 19:17:23 GMT
+    ## Date: Fri, 12 Jan 2024 19:52:17 GMT
     ## Content-Type: application/json
     ## Content-Length: 854
     ## Connection: keep-alive
@@ -180,7 +181,7 @@ response1 |> resp_raw()
     ## X-Frame-Options: SAMEORIGIN
     ## X-XSS-Protection: 1; mode=block
     ## Access-Control-Allow-Origin: *
-    ## Set-Cookie: cookiesession1=678A3E0E0583D036B3AD2F87E53F63EF;Expires=Thu, 09 Jan 2025 19:17:23 GMT;Path=/;HttpOnly
+    ## Set-Cookie: cookiesession1=678A3E0F0A35C5C7B50E03B58D4A1B8E;Expires=Sat, 11 Jan 2025 19:52:17 GMT;Path=/;HttpOnly
     ## 
     ## {"data":[{"record_date":"2023-12-31","security_type_desc":"Marketable","security_class_desc":"Bills","debt_held_public_mil_amt":"5674825.4005","intragov_hold_mil_amt":"955.663","total_mil_amt":"5675781.0635","src_line_nbr":"1","record_fiscal_year":"2024","record_fiscal_quarter":"1","record_calendar_year":"2023","record_calendar_quarter":"4","record_calendar_month":"12","record_calendar_day":"31"}],"meta":{"count":1,"labels":{"record_date":"Record Date","security_type_desc":"Security Type Description","security_class_desc":"Security Class Description","debt_held_public_mil_amt":"Debt Held by the Public (in Millions)","intragov_hold_mil_amt":"Intragovernmental Holdings (in Millions)","total_mil_amt":"Total Public Debt Outstanding (in Millions)","src_line_nbr":"Source Line Number","record_fiscal_year":"Fiscal Year","record_fiscal_quarter":"Fiscal Quarter Number","record_calendar_year":"Calendar Year","record_calendar_quarter":"Calendar Quarter Number","record_calendar_month":"Calendar Month Number","record_calendar_day":"Calendar Day Number"},"dataTypes":{"record_date":"DATE","security_type_desc":"STRING","security_class_desc":"STRING","debt_held_public_mil_amt":"CURRENCY","intragov_hold_mil_amt":"CURRENCY","total_mil_amt":"CURRENCY","src_line_nbr":"INTEGER","record_fiscal_year":"YEAR","record_fiscal_quarter":"QUARTER","record_calendar_year":"YEAR","record_calendar_quarter":"QUARTER","record_calendar_month":"MONTH","record_calendar_day":"DAY"},"dataFormats":{"record_date":"YYYY-MM-DD","security_type_desc":"String","security_class_desc":"String","debt_held_public_mil_amt":"$10.20","intragov_hold_mil_amt":"$10.20","total_mil_amt":"$10.20","src_line_nbr":"10","record_fiscal_year":"YYYY","record_fiscal_quarter":"Q","record_calendar_year":"YYYY","record_calendar_quarter":"Q","record_calendar_month":"MM","record_calendar_day":"DD"},"total-count":4211,"total-pages":4211},"links":{"self":"&page%5Bnumber%5D=1&page%5Bsize%5D=1","first":"&page%5Bnumber%5D=1&page%5Bsize%5D=1","prev":null,"next":"&page%5Bnumber%5D=2&page%5Bsize%5D=1","last":"&page%5Bnumber%5D=4211&page%5Bsize%5D=1"}}
 

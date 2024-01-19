@@ -1,13 +1,11 @@
 U.S. National Debt Over Time
 ================
-Last updated: 2024-01-12
+Last updated: 2024-01-19
 
 ## Preliminary Work: Install/Load Packages
 
-The first, preliminary step is to load in all the necessary packages
-that we will need. The first three lines of this code chunk check if
-these packages have been installed yet, installs them if necessary, and
-then loads these packages into our R session.
+Below is a list of R packages that will be used throughout this R
+Notebook.
 
 - The [httr2 package](https://cran.r-project.org/package=httr2) lets us
   easily make the API calls for the data.
@@ -27,6 +25,14 @@ then loads these packages into our R session.
   us generate nice graphics to visualize the data.
 - The [zoo package](https://cran.r-project.org/package=zoo) contains the
   `rollmean()` function that is used in some visualizations.
+
+The first three lines in the setup chunk below will automatically
+install any R packages that you may be missing. Another observation to
+make about the code chunk is that it is labeled as ‘setup’, which is a
+special name that the R Notebook will recognize and automatically run
+prior to running any other code chunk. This is useful for loading in
+packages and setting up other global options that will be used
+throughout the notebook.
 
 ``` r
 # Create list of packages needed for this exercise
@@ -53,25 +59,35 @@ library(zoo)
 
 ## Example API Request
 
-Before requesting the full series of the national debt, we will
-replicate the example API request from
-<https://fiscaldata.treasury.gov/datasets/monthly-statement-public-debt/>.
-This has been adapted to make use of the updated httr2 package, rather
-than the httr package that was originally used. For this example, we
-will break this process down into tiny pieces to explore the steps in
-the process.
+The particular dataset that we’ll be working with is the [U.S. Treasury
+Monthly Statement of the Public Debt
+(MSPD)](https://fiscaldata.treasury.gov/datasets/monthly-statement-public-debt/summary-of-treasury-securities-outstanding).
+This dataset contains monthly observations of the U.S. national debt,
+broken down into various categories. The data is available for manual
+download in a variety of formats on the webpage, but for this example,
+we will use the [Fiscal Data
+API](https://fiscaldata.treasury.gov/api-documentation/) to
+programmatically import the data into R.
+
+Before requesting the full data series for the national debt, we will
+replicate the example API request from the dataset website. Although we
+could directly use the `fromJSON()` function to make the request and
+parse the response in one step, we’ll first break this down into smaller
+steps to better understand the process.
 
 #### Construct the API GET Request
 
-First, we will specify the base url for the fiscal data API.
+First, we will specify the base url for the fiscal data API. This is the
+same for all requests to this API, so we can save it as a string to be
+used in each request.
 
 ``` r
 urlbase = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service"
 ```
 
 Then, we add the endpoint for the “Summary of Treasury Securities
-Outstanding” table. The `paste()` function allows for us to concatenate
-the two strings to create the full url. The `sep=` option allows for
+Outstanding” table. The `paste()` function allows us to concatenate the
+two strings to create the full url. The `sep=` option allows for
 inserting text between the strings being concatenated, which we do not
 want here. Thus, we enter an empty string as the separator.
 
@@ -86,20 +102,30 @@ urlfull
 After we create the url string for the table that we want, the next step
 is to specify any parameters for the API call, which effectively convey
 additional instructions for what data we want and how we want it
-returned. For this example, we want to (1) sort the data by date
-(`record_date`), (2) specify a JSON response, and (3) retrieve only the
-first observation after the sorting.
+returned. For this example, we want to (1) sort the data by its record
+date, (2) specify the requested data format for the response, and (3)
+retrieve only the first observation after the sorting.
 
-The `-` before `record_date` in the first parameter sorts the dates in
-descending order so that the most recent observation is at the top. The
-JSON format option is actually unnecessary as it is the default response
-format, but if we wanted to receive csv or xml formatted response, we
-would specify that here. For requesting only the first observation, this
-consists of two parts: `page[size]` specifies how any observations in
-each response and `page[number]` specifies which ‘page’ to request (if
-we wanted the second observation, then we would keep `page[size]` as is
-and switch to `page[number]=2`). Note: the first parameter is indicated
-by `?` and each subsequent parameter is separated with an `&`.
+The first character of each parameter indicates whether it is the first
+parameter or a subsequent parameter. The first parameter is indicated by
+`?` and each subsequent parameter is separated with an `&`.
+
+1.  The first parameter is `sort=-record_date`, which sorts the
+    observations by the `record_date` variable in descending order. The
+    `-` before `record_date` indicates that we want the dates in
+    descending order so that the most recent observation is at the top.
+2.  The second parameter is `format=json`, which specifies the requested
+    data format for the response. This [JSON
+    format](https://search.brave.com/search?q=JSON+format) parameter is
+    actually unnecessary since it is the default response format for the
+    API, but if we wanted to receive csv or xml formatted response, we
+    would specify that here.
+3.  The third parameter is `page[number]=1&page[size]=1`, which
+    retrieves only the first observation after the sorting. This
+    consists of two parts: `page[size]` specifies how any observations
+    in each response and `page[number]` specifies which ‘page’ to
+    request (if we wanted the second observation, then we would keep
+    `page[size]` as is and switch to `page[number]=2`).
 
 ``` r
 opt1 = "?sort=-record_date"
@@ -163,9 +189,9 @@ response1 |> resp_raw()
 ```
 
     ## HTTP/1.1 200 OK
-    ## Date: Fri, 12 Jan 2024 19:52:17 GMT
+    ## Date: Fri, 19 Jan 2024 22:46:17 GMT
     ## Content-Type: application/json
-    ## Content-Length: 854
+    ## Content-Length: 853
     ## Connection: keep-alive
     ## Server: nginx
     ## X-Content-Type-Options: nosniff
@@ -181,9 +207,9 @@ response1 |> resp_raw()
     ## X-Frame-Options: SAMEORIGIN
     ## X-XSS-Protection: 1; mode=block
     ## Access-Control-Allow-Origin: *
-    ## Set-Cookie: cookiesession1=678A3E0F0A35C5C7B50E03B58D4A1B8E;Expires=Sat, 11 Jan 2025 19:52:17 GMT;Path=/;HttpOnly
+    ## Set-Cookie: cookiesession1=678A3E0E3FF6F72F66886B6F9D382B14;Expires=Sat, 18 Jan 2025 22:46:17 GMT;Path=/;HttpOnly
     ## 
-    ## {"data":[{"record_date":"2023-12-31","security_type_desc":"Marketable","security_class_desc":"Bills","debt_held_public_mil_amt":"5674825.4005","intragov_hold_mil_amt":"955.663","total_mil_amt":"5675781.0635","src_line_nbr":"1","record_fiscal_year":"2024","record_fiscal_quarter":"1","record_calendar_year":"2023","record_calendar_quarter":"4","record_calendar_month":"12","record_calendar_day":"31"}],"meta":{"count":1,"labels":{"record_date":"Record Date","security_type_desc":"Security Type Description","security_class_desc":"Security Class Description","debt_held_public_mil_amt":"Debt Held by the Public (in Millions)","intragov_hold_mil_amt":"Intragovernmental Holdings (in Millions)","total_mil_amt":"Total Public Debt Outstanding (in Millions)","src_line_nbr":"Source Line Number","record_fiscal_year":"Fiscal Year","record_fiscal_quarter":"Fiscal Quarter Number","record_calendar_year":"Calendar Year","record_calendar_quarter":"Calendar Quarter Number","record_calendar_month":"Calendar Month Number","record_calendar_day":"Calendar Day Number"},"dataTypes":{"record_date":"DATE","security_type_desc":"STRING","security_class_desc":"STRING","debt_held_public_mil_amt":"CURRENCY","intragov_hold_mil_amt":"CURRENCY","total_mil_amt":"CURRENCY","src_line_nbr":"INTEGER","record_fiscal_year":"YEAR","record_fiscal_quarter":"QUARTER","record_calendar_year":"YEAR","record_calendar_quarter":"QUARTER","record_calendar_month":"MONTH","record_calendar_day":"DAY"},"dataFormats":{"record_date":"YYYY-MM-DD","security_type_desc":"String","security_class_desc":"String","debt_held_public_mil_amt":"$10.20","intragov_hold_mil_amt":"$10.20","total_mil_amt":"$10.20","src_line_nbr":"10","record_fiscal_year":"YYYY","record_fiscal_quarter":"Q","record_calendar_year":"YYYY","record_calendar_quarter":"Q","record_calendar_month":"MM","record_calendar_day":"DD"},"total-count":4211,"total-pages":4211},"links":{"self":"&page%5Bnumber%5D=1&page%5Bsize%5D=1","first":"&page%5Bnumber%5D=1&page%5Bsize%5D=1","prev":null,"next":"&page%5Bnumber%5D=2&page%5Bsize%5D=1","last":"&page%5Bnumber%5D=4211&page%5Bsize%5D=1"}}
+    ## {"data":[{"record_date":"2023-12-31","security_type_desc":"Marketable","security_class_desc":"Bills","debt_held_public_mil_amt":"5674825.4005","intragov_hold_mil_amt":"955.663","total_mil_amt":"5675781.0635","src_line_nbr":"1","record_fiscal_year":"2024","record_fiscal_quarter":"1","record_calendar_year":"2023","record_calendar_quarter":"4","record_calendar_month":"12","record_calendar_day":"31"}],"meta":{"count":1,"labels":{"record_date":"Record Date","security_type_desc":"Security Type Description","security_class_desc":"Security Class Description","debt_held_public_mil_amt":"Debt Held by the Public (in Millions)","intragov_hold_mil_amt":"Intragovernmental Holdings (in Millions)","total_mil_amt":"Total Public Debt Outstanding (in Millions)","src_line_nbr":"Source Line Number","record_fiscal_year":"Fiscal Year","record_fiscal_quarter":"Fiscal Quarter Number","record_calendar_year":"Calendar Year","record_calendar_quarter":"Calendar Quarter Number","record_calendar_month":"Calendar Month Number","record_calendar_day":"Calendar Day Number"},"dataTypes":{"record_date":"DATE","security_type_desc":"STRING","security_class_desc":"STRING","debt_held_public_mil_amt":"CURRENCY0","intragov_hold_mil_amt":"CURRENCY0","total_mil_amt":"CURRENCY0","src_line_nbr":"INTEGER","record_fiscal_year":"YEAR","record_fiscal_quarter":"QUARTER","record_calendar_year":"YEAR","record_calendar_quarter":"QUARTER","record_calendar_month":"MONTH","record_calendar_day":"DAY"},"dataFormats":{"record_date":"YYYY-MM-DD","security_type_desc":"String","security_class_desc":"String","debt_held_public_mil_amt":"$1,000,000","intragov_hold_mil_amt":"$1,000,000","total_mil_amt":"$1,000,000","src_line_nbr":"10","record_fiscal_year":"YYYY","record_fiscal_quarter":"Q","record_calendar_year":"YYYY","record_calendar_quarter":"Q","record_calendar_month":"MM","record_calendar_day":"DD"},"total-count":4211,"total-pages":4211},"links":{"self":"&page%5Bnumber%5D=1&page%5Bsize%5D=1","first":"&page%5Bnumber%5D=1&page%5Bsize%5D=1","prev":null,"next":"&page%5Bnumber%5D=2&page%5Bsize%5D=1","last":"&page%5Bnumber%5D=4211&page%5Bsize%5D=1"}}
 
 #### Explore the Response
 
@@ -199,7 +225,7 @@ response1body = resp_body_string(response1)
 response1body
 ```
 
-    ## [1] "{\"data\":[{\"record_date\":\"2023-12-31\",\"security_type_desc\":\"Marketable\",\"security_class_desc\":\"Bills\",\"debt_held_public_mil_amt\":\"5674825.4005\",\"intragov_hold_mil_amt\":\"955.663\",\"total_mil_amt\":\"5675781.0635\",\"src_line_nbr\":\"1\",\"record_fiscal_year\":\"2024\",\"record_fiscal_quarter\":\"1\",\"record_calendar_year\":\"2023\",\"record_calendar_quarter\":\"4\",\"record_calendar_month\":\"12\",\"record_calendar_day\":\"31\"}],\"meta\":{\"count\":1,\"labels\":{\"record_date\":\"Record Date\",\"security_type_desc\":\"Security Type Description\",\"security_class_desc\":\"Security Class Description\",\"debt_held_public_mil_amt\":\"Debt Held by the Public (in Millions)\",\"intragov_hold_mil_amt\":\"Intragovernmental Holdings (in Millions)\",\"total_mil_amt\":\"Total Public Debt Outstanding (in Millions)\",\"src_line_nbr\":\"Source Line Number\",\"record_fiscal_year\":\"Fiscal Year\",\"record_fiscal_quarter\":\"Fiscal Quarter Number\",\"record_calendar_year\":\"Calendar Year\",\"record_calendar_quarter\":\"Calendar Quarter Number\",\"record_calendar_month\":\"Calendar Month Number\",\"record_calendar_day\":\"Calendar Day Number\"},\"dataTypes\":{\"record_date\":\"DATE\",\"security_type_desc\":\"STRING\",\"security_class_desc\":\"STRING\",\"debt_held_public_mil_amt\":\"CURRENCY\",\"intragov_hold_mil_amt\":\"CURRENCY\",\"total_mil_amt\":\"CURRENCY\",\"src_line_nbr\":\"INTEGER\",\"record_fiscal_year\":\"YEAR\",\"record_fiscal_quarter\":\"QUARTER\",\"record_calendar_year\":\"YEAR\",\"record_calendar_quarter\":\"QUARTER\",\"record_calendar_month\":\"MONTH\",\"record_calendar_day\":\"DAY\"},\"dataFormats\":{\"record_date\":\"YYYY-MM-DD\",\"security_type_desc\":\"String\",\"security_class_desc\":\"String\",\"debt_held_public_mil_amt\":\"$10.20\",\"intragov_hold_mil_amt\":\"$10.20\",\"total_mil_amt\":\"$10.20\",\"src_line_nbr\":\"10\",\"record_fiscal_year\":\"YYYY\",\"record_fiscal_quarter\":\"Q\",\"record_calendar_year\":\"YYYY\",\"record_calendar_quarter\":\"Q\",\"record_calendar_month\":\"MM\",\"record_calendar_day\":\"DD\"},\"total-count\":4211,\"total-pages\":4211},\"links\":{\"self\":\"&page%5Bnumber%5D=1&page%5Bsize%5D=1\",\"first\":\"&page%5Bnumber%5D=1&page%5Bsize%5D=1\",\"prev\":null,\"next\":\"&page%5Bnumber%5D=2&page%5Bsize%5D=1\",\"last\":\"&page%5Bnumber%5D=4211&page%5Bsize%5D=1\"}}"
+    ## [1] "{\"data\":[{\"record_date\":\"2023-12-31\",\"security_type_desc\":\"Marketable\",\"security_class_desc\":\"Bills\",\"debt_held_public_mil_amt\":\"5674825.4005\",\"intragov_hold_mil_amt\":\"955.663\",\"total_mil_amt\":\"5675781.0635\",\"src_line_nbr\":\"1\",\"record_fiscal_year\":\"2024\",\"record_fiscal_quarter\":\"1\",\"record_calendar_year\":\"2023\",\"record_calendar_quarter\":\"4\",\"record_calendar_month\":\"12\",\"record_calendar_day\":\"31\"}],\"meta\":{\"count\":1,\"labels\":{\"record_date\":\"Record Date\",\"security_type_desc\":\"Security Type Description\",\"security_class_desc\":\"Security Class Description\",\"debt_held_public_mil_amt\":\"Debt Held by the Public (in Millions)\",\"intragov_hold_mil_amt\":\"Intragovernmental Holdings (in Millions)\",\"total_mil_amt\":\"Total Public Debt Outstanding (in Millions)\",\"src_line_nbr\":\"Source Line Number\",\"record_fiscal_year\":\"Fiscal Year\",\"record_fiscal_quarter\":\"Fiscal Quarter Number\",\"record_calendar_year\":\"Calendar Year\",\"record_calendar_quarter\":\"Calendar Quarter Number\",\"record_calendar_month\":\"Calendar Month Number\",\"record_calendar_day\":\"Calendar Day Number\"},\"dataTypes\":{\"record_date\":\"DATE\",\"security_type_desc\":\"STRING\",\"security_class_desc\":\"STRING\",\"debt_held_public_mil_amt\":\"CURRENCY0\",\"intragov_hold_mil_amt\":\"CURRENCY0\",\"total_mil_amt\":\"CURRENCY0\",\"src_line_nbr\":\"INTEGER\",\"record_fiscal_year\":\"YEAR\",\"record_fiscal_quarter\":\"QUARTER\",\"record_calendar_year\":\"YEAR\",\"record_calendar_quarter\":\"QUARTER\",\"record_calendar_month\":\"MONTH\",\"record_calendar_day\":\"DAY\"},\"dataFormats\":{\"record_date\":\"YYYY-MM-DD\",\"security_type_desc\":\"String\",\"security_class_desc\":\"String\",\"debt_held_public_mil_amt\":\"$1,000,000\",\"intragov_hold_mil_amt\":\"$1,000,000\",\"total_mil_amt\":\"$1,000,000\",\"src_line_nbr\":\"10\",\"record_fiscal_year\":\"YYYY\",\"record_fiscal_quarter\":\"Q\",\"record_calendar_year\":\"YYYY\",\"record_calendar_quarter\":\"Q\",\"record_calendar_month\":\"MM\",\"record_calendar_day\":\"DD\"},\"total-count\":4211,\"total-pages\":4211},\"links\":{\"self\":\"&page%5Bnumber%5D=1&page%5Bsize%5D=1\",\"first\":\"&page%5Bnumber%5D=1&page%5Bsize%5D=1\",\"prev\":null,\"next\":\"&page%5Bnumber%5D=2&page%5Bsize%5D=1\",\"last\":\"&page%5Bnumber%5D=4211&page%5Bsize%5D=1\"}}"
 
 If we apply the `resp_body_json()` and `str()` functions to the
 response, this gives a bit more structure to the data retrieved from the
@@ -246,9 +272,9 @@ response1 |> resp_body_json() |> str()
     ##   .. ..$ record_date             : chr "DATE"
     ##   .. ..$ security_type_desc      : chr "STRING"
     ##   .. ..$ security_class_desc     : chr "STRING"
-    ##   .. ..$ debt_held_public_mil_amt: chr "CURRENCY"
-    ##   .. ..$ intragov_hold_mil_amt   : chr "CURRENCY"
-    ##   .. ..$ total_mil_amt           : chr "CURRENCY"
+    ##   .. ..$ debt_held_public_mil_amt: chr "CURRENCY0"
+    ##   .. ..$ intragov_hold_mil_amt   : chr "CURRENCY0"
+    ##   .. ..$ total_mil_amt           : chr "CURRENCY0"
     ##   .. ..$ src_line_nbr            : chr "INTEGER"
     ##   .. ..$ record_fiscal_year      : chr "YEAR"
     ##   .. ..$ record_fiscal_quarter   : chr "QUARTER"
@@ -260,9 +286,9 @@ response1 |> resp_body_json() |> str()
     ##   .. ..$ record_date             : chr "YYYY-MM-DD"
     ##   .. ..$ security_type_desc      : chr "String"
     ##   .. ..$ security_class_desc     : chr "String"
-    ##   .. ..$ debt_held_public_mil_amt: chr "$10.20"
-    ##   .. ..$ intragov_hold_mil_amt   : chr "$10.20"
-    ##   .. ..$ total_mil_amt           : chr "$10.20"
+    ##   .. ..$ debt_held_public_mil_amt: chr "$1,000,000"
+    ##   .. ..$ intragov_hold_mil_amt   : chr "$1,000,000"
+    ##   .. ..$ total_mil_amt           : chr "$1,000,000"
     ##   .. ..$ src_line_nbr            : chr "10"
     ##   .. ..$ record_fiscal_year      : chr "YYYY"
     ##   .. ..$ record_fiscal_quarter   : chr "Q"
@@ -315,9 +341,9 @@ myData1
     ##   record_calendar_month record_calendar_day
     ## 1                    12                  31
 
-**Alternatively, we can simply use the `fromJSON()` function on
-`request1`, which will cut out the intermediate steps (note: `myData1`
-and `myData` are identical).**
+**Alternatively, we can simply use the `fromJSON()` function on `req1`,
+which will cut out the intermediate steps (note: `myData1` and `myData`
+are identical).**
 
 ``` r
 dfresponse = fromJSON(req1)
@@ -333,6 +359,8 @@ myData
     ## 1                     1                 2023                       4
     ##   record_calendar_month record_calendar_day
     ## 1                    12                  31
+
+#### Clean the Data Formatting
 
 Now that we have this more efficient way of loading the data into R, we
 need to make sure that the variables are formatted correctly. If we use
@@ -364,8 +392,11 @@ myData$debt_held_public_mil_amt/2
     ## Error in myData$debt_held_public_mil_amt/2: non-numeric argument to binary operator
 
 To reformat any non-text variables, we can use the `as()` functions. For
-this example, we will just format one date and one numeric variable to
-demonstrate the process.
+this example, we will just format one date (`as.Date()`) and one numeric
+variable (`as.numeric()`) to demonstrate the process. Then we can check
+the class of those variables again to confirm that they are formatted
+correctly. Lastly, we can perform a simple calculation to confirm that
+the numeric variable is formatted correctly.
 
 ``` r
 myData$record_date = as.Date(myData$record_date)
@@ -504,8 +535,9 @@ debtdf$total_tril_amt = debtdf$total_mil_amt/1000000
 Since the table contains observations for the total national debt along
 with various subsets, we need to extract the subset of observations
 corresponding with total debt figures. As with many things in R, there
-are multiple ways to do this. Two examples the yield identical results
-are:
+are multiple ways to do this. Each of the two lines below will
+accomplish this task of subsetting the data frame down to only a time
+series for the aggregate debt levels.
 
 ``` r
 totaldebtdf = debtdf[which(debtdf$security_type_desc=="Total Public Debt Outstanding"),]
@@ -556,7 +588,11 @@ To plot out the national debt over time, we will first use the standard
 simple line chart plotting the time series.
 
 ``` r
-plot(totaldebtdf$record_date,totaldebtdf$total_tril_amt,type='l',main="U.S. National Debt Over Time",xlab="",ylab="Debt in USD Trillions") 
+plot(totaldebtdf$record_date, totaldebtdf$total_tril_amt,
+     type='l',
+     main="U.S. National Debt Over Time",
+     xlab="",
+     ylab="Debt in USD Trillions") 
 ```
 
 ![](README_files/figure-gfm/plotline-1.png)<!-- -->

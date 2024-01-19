@@ -11,7 +11,7 @@
   "Packages": {
     "MASS": {
       "Package": "MASS",
-      "Version": "7.3-60",
+      "Version": "7.3-60.0.1",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -22,7 +22,7 @@
         "stats",
         "utils"
       ],
-      "Hash": "a56a6365b3fa73293ea8d084be0d9bb0"
+      "Hash": "b765b28387acc8ec9e9c1530713cb19c"
     },
     "Matrix": {
       "Package": "Matrix",
@@ -868,16 +868,15 @@
     },
     "withr": {
       "Package": "withr",
-      "Version": "2.5.2",
+      "Version": "3.0.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "R",
         "grDevices",
-        "graphics",
-        "stats"
+        "graphics"
       ],
-      "Hash": "4b25e70111b7d644322e9513f403a272"
+      "Hash": "d31b6c62c10dcf11ec530ca6b0dd5d35"
     },
     "xfun": {
       "Package": "xfun",

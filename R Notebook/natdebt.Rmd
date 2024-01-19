@@ -6,7 +6,7 @@ output: html_notebook
 
 ## Preliminary Work: Install/Load Packages
 
-The first, preliminary step is to load in all the necessary packages that we will need. The first three lines of this code chunk check if these packages have been installed yet, installs them if necessary, and then loads these packages into our R session.
+Below is a list of R packages that will be used throughout this R Notebook. 
 
 * The [httr2 package](https://cran.r-project.org/package=httr2) lets us easily make the API calls for the data.
   * The original version of this demo used the httr package to perform the Example API Request and was updated in January 2024 to make use of the httr2 package. See the [httr2 announcement](https://www.tidyverse.org/blog/2023/11/httr2-1-0-0/) from November 2023 for more details about this update.
@@ -15,6 +15,8 @@ The first, preliminary step is to load in all the necessary packages that we wil
 * The [tidyr package](https://cran.r-project.org/package=tidyr) provides tools for working with the data.
 * The [ggplot2 package](https://cran.r-project.org/package=ggplot2) lets us generate nice graphics to visualize the data.
 * The [zoo package](https://cran.r-project.org/package=zoo) contains the `rollmean()` function that is used in some visualizations.
+
+The first three lines in the setup chunk below will automatically install any R packages that you may be missing. Another observation to make about the code chunk is that it is labeled as 'setup', which is a special name that the R Notebook will recognize and automatically run prior to running any other code chunk. This is useful for loading in packages and setting up other global options that will be used throughout the notebook. 
 
 ```{r setup, results='hide'}
 # Create list of packages needed for this exercise
@@ -35,17 +37,19 @@ library(zoo)
 
 ## Example API Request
 
-Before requesting the full series of the national debt, we will replicate the example API request from <https://fiscaldata.treasury.gov/datasets/monthly-statement-public-debt/>. This has been adapted to make use of the updated httr2 package, rather than the httr package that was originally used. For this example, we will break this process down into tiny pieces to explore the steps in the process.
+The particular dataset that we'll be working with is the [U.S. Treasury Monthly Statement of the Public Debt (MSPD)](https://fiscaldata.treasury.gov/datasets/monthly-statement-public-debt/summary-of-treasury-securities-outstanding). This dataset contains monthly observations of the U.S. national debt, broken down into various categories. The data is available for manual download in a variety of formats on the webpage, but for this example, we will use the [Fiscal Data API](https://fiscaldata.treasury.gov/api-documentation/) to programmatically import the data into R. 
+
+Before requesting the full data series for the national debt, we will replicate the example API request from the dataset website. Although we could directly use the `fromJSON()` function to make the request and parse the response in one step, we'll first break this down into smaller steps to better understand the process.
 
 #### Construct the API GET Request
 
-First, we will specify the base url for the fiscal data API.
+First, we will specify the base url for the fiscal data API. This is the same for all requests to this API, so we can save it as a string to be used in each request.
 
 ```{r req1base}
 urlbase = "https://api.fiscaldata.treasury.gov/services/api/fiscal_service"
 ```
 
-Then, we add the endpoint for the "Summary of Treasury Securities Outstanding" table. The `paste()` function allows for us to concatenate the two strings to create the full url. The `sep=` option allows for inserting text between the strings being concatenated, which we do not want here. Thus, we enter an empty string as the separator.
+Then, we add the endpoint for the "Summary of Treasury Securities Outstanding" table. The `paste()` function allows us to concatenate the two strings to create the full url. The `sep=` option allows for inserting text between the strings being concatenated, which we do not want here. Thus, we enter an empty string as the separator.
 
 ```{r reg1end}
 urlend = "v1/debt/mspd/mspd_table_1"
@@ -53,9 +57,13 @@ urlfull = paste(urlbase,urlend,sep="/")
 urlfull
 ```
 
-After we create the url string for the table that we want, the next step is to specify any parameters for the API call, which effectively convey additional instructions for what data we want and how we want it returned. For this example, we want to (1) sort the data by date (`record_date`), (2) specify a JSON response, and (3) retrieve only the first observation after the sorting.
+After we create the url string for the table that we want, the next step is to specify any parameters for the API call, which effectively convey additional instructions for what data we want and how we want it returned. For this example, we want to (1) sort the data by its record date, (2) specify the requested data format for the response, and (3) retrieve only the first observation after the sorting.
 
-The `-` before `record_date` in the first parameter sorts the dates in descending order so that the most recent observation is at the top. The JSON format option is actually unnecessary as it is the default response format, but if we wanted to receive csv or xml formatted response, we would specify that here. For requesting only the first observation, this consists of two parts: `page[size]` specifies how any observations in each response and `page[number]` specifies which 'page' to request (if we wanted the second observation, then we would keep `page[size]` as is and switch to `page[number]=2`). Note: the first parameter is indicated by `?` and each subsequent parameter is separated with an `&`.
+The first character of each parameter indicates whether it is the first parameter or a subsequent parameter. The first parameter is indicated by `?` and each subsequent parameter is separated with an `&`.
+
+1. The first parameter is `sort=-record_date`, which sorts the observations by the `record_date` variable in descending order. The `-` before `record_date` indicates that we want the dates in descending order so that the most recent observation is at the top.
+2. The second parameter is `format=json`, which specifies the requested data format for the response. This [JSON format](https://search.brave.com/search?q=JSON+format) parameter is actually unnecessary since it is the default response format for the API, but if we wanted to receive csv or xml formatted response, we would specify that here.
+3. The third parameter is `page[number]=1&page[size]=1`, which retrieves only the first observation after the sorting. This consists of two parts: `page[size]` specifies how any observations in each response and `page[number]` specifies which 'page' to request (if we wanted the second observation, then we would keep `page[size]` as is and switch to `page[number]=2`).
 
 ```{r req1opts}
 opt1 = "?sort=-record_date"
@@ -117,13 +125,15 @@ dfresponse1 = fromJSON(response1body)
 myData1 = dfresponse1$data
 myData1
 ```
-**Alternatively, we can simply use the `fromJSON()` function on `request1`, which will cut out the intermediate steps (note: `myData1` and `myData` are identical).**
+**Alternatively, we can simply use the `fromJSON()` function on `req1`, which will cut out the intermediate steps (note: `myData1` and `myData` are identical).**
 
 ```{r req1df2}
 dfresponse = fromJSON(req1)
 myData = dfresponse$data
 myData
 ```
+
+#### Clean the Data Formatting
 
 Now that we have this more efficient way of loading the data into R, we need to make sure that the variables are formatted correctly. If we use the `class()` function to examine a few variable formats, we see that everything is formatted as a character array.
 
@@ -134,7 +144,7 @@ class(myData$debt_held_public_mil_amt)
 myData$debt_held_public_mil_amt/2
 ```
 
-To reformat any non-text variables, we can use the `as()` functions. For this example, we will just format one date and one numeric variable to demonstrate the process.
+To reformat any non-text variables, we can use the `as()` functions. For this example, we will just format one date (`as.Date()`) and one numeric variable (`as.numeric()`) to demonstrate the process. Then we can check the class of those variables again to confirm that they are formatted correctly. Lastly, we can perform a simple calculation to confirm that the numeric variable is formatted correctly.
 
 ```{r req1format}
 myData$record_date = as.Date(myData$record_date)
@@ -183,7 +193,7 @@ To make our figures a little cleaner later, we will also create a new variable t
 debtdf$total_tril_amt = debtdf$total_mil_amt/1000000
 ```
 
-Since the table contains observations for the total national debt along with various subsets, we need to extract the subset of observations corresponding with total debt figures. As with many things in R, there are multiple ways to do this. Two examples the yield identical results are:
+Since the table contains observations for the total national debt along with various subsets, we need to extract the subset of observations corresponding with total debt figures. As with many things in R, there are multiple ways to do this. Each of the two lines below will accomplish this task of subsetting the data frame down to only a time series for the aggregate debt levels.
 
 ```{r req2total}
 totaldebtdf = debtdf[which(debtdf$security_type_desc=="Total Public Debt Outstanding"),]
@@ -204,7 +214,11 @@ head(totaldebtdf,10)
 To plot out the national debt over time, we will first use the standard `plot()` function, and a few options to set some labels, which creates a simple line chart plotting the time series.
 
 ```{r plotline}
-plot(totaldebtdf$record_date,totaldebtdf$total_tril_amt,type='l',main="U.S. National Debt Over Time",xlab="",ylab="Debt in USD Trillions") 
+plot(totaldebtdf$record_date, totaldebtdf$total_tril_amt,
+     type='l',
+     main="U.S. National Debt Over Time",
+     xlab="",
+     ylab="Debt in USD Trillions") 
 ```
 
 However, the `ggplot2` package provides lots of extra visualization functionality that can make the plotting process a bit smoother and more capable. Let's replicate the above figure using `ggplot()` to see the differences.

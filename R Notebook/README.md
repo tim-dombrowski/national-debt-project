@@ -1,11 +1,40 @@
 U.S. National Debt Over Time
 ================
-Last updated: 2024-01-19
+Last updated: 2024-01-27
 
 ## Preliminary Work: Install/Load Packages
 
-Below is a list of R packages that will be used throughout this R
-Notebook.
+To try and ensure that this R Notebook will run successfully, we’ll use
+the [renv
+package](https://cran.r-project.org/web/packages/renv/index.html) to
+create a project-specific library of packages. This will allow us to
+install the packages that we need for this project without affecting any
+other projects that we may be working on. Additionally, the project
+library will track the specific versions of the dependency packages so
+that any updates to those packages will not break this project.
+
+The code chunk below will first install the renv package if it is not
+already installed. Then we will load the package. Next, we’ll use the
+`restore()` function to install any packages listed in the renv.lock
+file. Once these packages are installed, we can load them into the R
+session using the `library()` commands. Below the code chunk, we’ll list
+out the packages that will be used in the project demo.
+
+``` r
+# Install renv package if not already installed
+if(!"renv" %in% installed.packages()[,"Package"]) install.packages("renv")
+# Load renv package
+library(renv)
+# Use restore() to install any packages listed in the renv.lock file
+renv::restore(clean=TRUE, lockfile="../renv.lock")
+# Load in the packages
+library(httr2)
+library(httpuv)
+library(jsonlite)
+library(tidyr)
+library(ggplot2)
+library(zoo)
+```
 
 - The [httr2 package](https://cran.r-project.org/package=httr2) lets us
   easily make the API calls for the data.
@@ -25,37 +54,36 @@ Notebook.
   us generate nice graphics to visualize the data.
 - The [zoo package](https://cran.r-project.org/package=zoo) contains the
   `rollmean()` function that is used in some visualizations.
+- The [rmarkdown package](https://cran.r-project.org/package=rmarkdown)
+  is used to generate this R Notebook.
 
-The first three lines in the setup chunk below will automatically
-install any R packages that you may be missing. Another observation to
-make about the code chunk is that it is labeled as ‘setup’, which is a
-special name that the R Notebook will recognize and automatically run
-prior to running any other code chunk. This is useful for loading in
-packages and setting up other global options that will be used
-throughout the notebook.
+Since the rmarkdown functionality is built into RStudio, this one is
+automatically loaded when we open the RStudio. So no need to use the
+`library()` function for this one. Another observation to make about the
+code chunk above is that it is labeled as ‘setup’, which is a special
+name, which the R Notebook will recognize and automatically run prior to
+running any other code chunk. This is useful for loading in packages and
+setting up other global options that will be used throughout the
+notebook.
 
-``` r
-# Create list of packages needed for this exercise
-list.of.packages <- c("httr2", "httpuv", "jsonlite","tidyr","ggplot2","zoo","rmarkdown")
-# Check if any have not yet been installed
-new.packages <- list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
-# If any need to be installed, install them
-if(length(new.packages)) install.packages(new.packages)
-# Load in the packages
-library(httr2)
-library(httpuv)
-library(jsonlite)
-library(tidyr)
-library(ggplot2)
-library(zoo)
-```
+Then if you wish to try and update the versions of the various R
+packages in the lock file, you can use the `renv::update()` function to
+update the packages in the project library. However, it is possible that
+these updates could break the code in this notebook. If so, you may need
+to adapt the code to work with the updated packages.
 
-    ## 
-    ## Attaching package: 'zoo'
+My recommendation is to first run through the code using the versions of
+the packages in the lock file. Then if you want to try and update the
+packages, you can do so and then run through the code again to see if it
+still works. If not, you can always revert back to the lock file
+versions using the `renv::restore()` function.
 
-    ## The following objects are masked from 'package:base':
-    ## 
-    ##     as.Date, as.Date.numeric
+If you update the packages and get everything working successfully, then
+you can update the lock file using the `renv::snapshot()` function. This
+will update the lock file with the versions of the packages that are
+currently installed in the project library. Then you can commit the
+updated lock file to the repository so that others can use the updated
+versions of the packages.
 
 ## Example API Request
 
@@ -189,7 +217,7 @@ response1 |> resp_raw()
 ```
 
     ## HTTP/1.1 200 OK
-    ## Date: Fri, 19 Jan 2024 22:46:17 GMT
+    ## Date: Sat, 27 Jan 2024 22:00:44 GMT
     ## Content-Type: application/json
     ## Content-Length: 853
     ## Connection: keep-alive
@@ -207,7 +235,7 @@ response1 |> resp_raw()
     ## X-Frame-Options: SAMEORIGIN
     ## X-XSS-Protection: 1; mode=block
     ## Access-Control-Allow-Origin: *
-    ## Set-Cookie: cookiesession1=678A3E0E3FF6F72F66886B6F9D382B14;Expires=Sat, 18 Jan 2025 22:46:17 GMT;Path=/;HttpOnly
+    ## Set-Cookie: cookiesession1=678A3E0E529C4181C30341D39E59C8CD;Expires=Sun, 26 Jan 2025 22:00:44 GMT;Path=/;HttpOnly
     ## 
     ## {"data":[{"record_date":"2023-12-31","security_type_desc":"Marketable","security_class_desc":"Bills","debt_held_public_mil_amt":"5674825.4005","intragov_hold_mil_amt":"955.663","total_mil_amt":"5675781.0635","src_line_nbr":"1","record_fiscal_year":"2024","record_fiscal_quarter":"1","record_calendar_year":"2023","record_calendar_quarter":"4","record_calendar_month":"12","record_calendar_day":"31"}],"meta":{"count":1,"labels":{"record_date":"Record Date","security_type_desc":"Security Type Description","security_class_desc":"Security Class Description","debt_held_public_mil_amt":"Debt Held by the Public (in Millions)","intragov_hold_mil_amt":"Intragovernmental Holdings (in Millions)","total_mil_amt":"Total Public Debt Outstanding (in Millions)","src_line_nbr":"Source Line Number","record_fiscal_year":"Fiscal Year","record_fiscal_quarter":"Fiscal Quarter Number","record_calendar_year":"Calendar Year","record_calendar_quarter":"Calendar Quarter Number","record_calendar_month":"Calendar Month Number","record_calendar_day":"Calendar Day Number"},"dataTypes":{"record_date":"DATE","security_type_desc":"STRING","security_class_desc":"STRING","debt_held_public_mil_amt":"CURRENCY0","intragov_hold_mil_amt":"CURRENCY0","total_mil_amt":"CURRENCY0","src_line_nbr":"INTEGER","record_fiscal_year":"YEAR","record_fiscal_quarter":"QUARTER","record_calendar_year":"YEAR","record_calendar_quarter":"QUARTER","record_calendar_month":"MONTH","record_calendar_day":"DAY"},"dataFormats":{"record_date":"YYYY-MM-DD","security_type_desc":"String","security_class_desc":"String","debt_held_public_mil_amt":"$1,000,000","intragov_hold_mil_amt":"$1,000,000","total_mil_amt":"$1,000,000","src_line_nbr":"10","record_fiscal_year":"YYYY","record_fiscal_quarter":"Q","record_calendar_year":"YYYY","record_calendar_quarter":"Q","record_calendar_month":"MM","record_calendar_day":"DD"},"total-count":4211,"total-pages":4211},"links":{"self":"&page%5Bnumber%5D=1&page%5Bsize%5D=1","first":"&page%5Bnumber%5D=1&page%5Bsize%5D=1","prev":null,"next":"&page%5Bnumber%5D=2&page%5Bsize%5D=1","last":"&page%5Bnumber%5D=4211&page%5Bsize%5D=1"}}
 

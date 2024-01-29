@@ -1,6 +1,6 @@
 U.S. National Debt Over Time
 ================
-Last updated: 2024-01-27
+Last updated: 2024-01-28
 
 ## Preliminary Work: Install/Load Packages
 
@@ -18,7 +18,10 @@ already installed. Then we will load the package. Next, we’ll use the
 `restore()` function to install any packages listed in the renv.lock
 file. Once these packages are installed, we can load them into the R
 session using the `library()` commands. Below the code chunk, we’ll list
-out the packages that will be used in the project demo.
+out the packages that will be used in the project demo. And if you run
+into any trouble using renv, then you can use the second code chunk
+below and that should be an even more reliable approach to install the
+required packages.
 
 ``` r
 # Install renv package if not already installed
@@ -84,6 +87,39 @@ will update the lock file with the versions of the packages that are
 currently installed in the project library. Then you can commit the
 updated lock file to the repository so that others can use the updated
 versions of the packages.
+
+### Alternative Package Installation Code
+
+If you run into any trouble using renv in the code chunk above, then you
+can use the code chunk below to install the required packages for this
+analysis. This method will first check if you have already installed the
+packages. If any are missing, it will then install them. Then it will
+load the packages into the R session. A potential flaw in this approach
+compared to using renv is that it will simply install the latest
+versions of the packages, which could potentially break some of the code
+in this notebook if any of the updates aren’t backwards compatible.
+
+As long as you have downloaded the entire project repository, the renv
+chunk above will likely be managing the packages. Thus, the `eval=FALSE`
+option is used to prevent this chunk from running unless manually
+executed. So if you only downloaded this one Rmd file, this code chunk
+should take care of installing the packages for you.
+
+``` r
+# Create list of packages needed for this exercise
+list.of.packages = c("httr2","httpuv","jsonlite","tidyr","ggplot2","zoo","rmarkdown")
+# Check if any have not yet been installed
+new.packages = list.of.packages[!(list.of.packages %in% installed.packages()[,"Package"])]
+# If any need to be installed, install them
+if(length(new.packages)) install.packages(new.packages)
+# Load in the packages
+library(httr2)
+library(httpuv)
+library(jsonlite)
+library(tidyr)
+library(ggplot2)
+library(zoo)
+```
 
 ## Example API Request
 
@@ -217,7 +253,7 @@ response1 |> resp_raw()
 ```
 
     ## HTTP/1.1 200 OK
-    ## Date: Sat, 27 Jan 2024 22:00:44 GMT
+    ## Date: Mon, 29 Jan 2024 03:17:22 GMT
     ## Content-Type: application/json
     ## Content-Length: 853
     ## Connection: keep-alive
@@ -235,7 +271,7 @@ response1 |> resp_raw()
     ## X-Frame-Options: SAMEORIGIN
     ## X-XSS-Protection: 1; mode=block
     ## Access-Control-Allow-Origin: *
-    ## Set-Cookie: cookiesession1=678A3E0E529C4181C30341D39E59C8CD;Expires=Sun, 26 Jan 2025 22:00:44 GMT;Path=/;HttpOnly
+    ## Set-Cookie: cookiesession1=678A3E0EE2ADD7206F61FC9743731145;Expires=Tue, 28 Jan 2025 03:17:22 GMT;Path=/;HttpOnly
     ## 
     ## {"data":[{"record_date":"2023-12-31","security_type_desc":"Marketable","security_class_desc":"Bills","debt_held_public_mil_amt":"5674825.4005","intragov_hold_mil_amt":"955.663","total_mil_amt":"5675781.0635","src_line_nbr":"1","record_fiscal_year":"2024","record_fiscal_quarter":"1","record_calendar_year":"2023","record_calendar_quarter":"4","record_calendar_month":"12","record_calendar_day":"31"}],"meta":{"count":1,"labels":{"record_date":"Record Date","security_type_desc":"Security Type Description","security_class_desc":"Security Class Description","debt_held_public_mil_amt":"Debt Held by the Public (in Millions)","intragov_hold_mil_amt":"Intragovernmental Holdings (in Millions)","total_mil_amt":"Total Public Debt Outstanding (in Millions)","src_line_nbr":"Source Line Number","record_fiscal_year":"Fiscal Year","record_fiscal_quarter":"Fiscal Quarter Number","record_calendar_year":"Calendar Year","record_calendar_quarter":"Calendar Quarter Number","record_calendar_month":"Calendar Month Number","record_calendar_day":"Calendar Day Number"},"dataTypes":{"record_date":"DATE","security_type_desc":"STRING","security_class_desc":"STRING","debt_held_public_mil_amt":"CURRENCY0","intragov_hold_mil_amt":"CURRENCY0","total_mil_amt":"CURRENCY0","src_line_nbr":"INTEGER","record_fiscal_year":"YEAR","record_fiscal_quarter":"QUARTER","record_calendar_year":"YEAR","record_calendar_quarter":"QUARTER","record_calendar_month":"MONTH","record_calendar_day":"DAY"},"dataFormats":{"record_date":"YYYY-MM-DD","security_type_desc":"String","security_class_desc":"String","debt_held_public_mil_amt":"$1,000,000","intragov_hold_mil_amt":"$1,000,000","total_mil_amt":"$1,000,000","src_line_nbr":"10","record_fiscal_year":"YYYY","record_fiscal_quarter":"Q","record_calendar_year":"YYYY","record_calendar_quarter":"Q","record_calendar_month":"MM","record_calendar_day":"DD"},"total-count":4211,"total-pages":4211},"links":{"self":"&page%5Bnumber%5D=1&page%5Bsize%5D=1","first":"&page%5Bnumber%5D=1&page%5Bsize%5D=1","prev":null,"next":"&page%5Bnumber%5D=2&page%5Bsize%5D=1","last":"&page%5Bnumber%5D=4211&page%5Bsize%5D=1"}}
 

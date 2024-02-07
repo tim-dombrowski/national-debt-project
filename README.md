@@ -2,7 +2,7 @@
 
 ### Overview
 
-This demonstration is focused on providing an example for using a public application programming interface (API) to retrieve financial data and produce some basic visualizations using the [ggplot2](https://ggplot2.tidyverse.org/) R package. Using the API provided by the [U.S. Treasury Fiscal Data Webpage](https://fiscaldata.treasury.gov), this demo will develop a query to request a [panel of data](https://search.brave.com/search?q=panel+data) that contains the components of the U.S. National Debt over more than 200 months.
+This demonstration is focused on providing an example for using a public application programming interface (API) to retrieve financial data and produce some basic visualizations using the [ggplot2](https://ggplot2.tidyverse.org/) R package. Using the API provided by the [U.S. Treasury Fiscal Data Webpage](https://fiscaldata.treasury.gov), this demo will develop a query to request a [panel of data](https://search.brave.com/search?q=panel+data) that contains the components of the U.S. National Debt over more than 200 months. The data will be imported into R, cleaned, and then visualized to show the trends in the national debt over time.
 
 This Fiscal Data API is based on a [RESTful API format](https://search.brave.com/search?q=RESTful+API). For more information about the structure of the API, review the [official Fiscal Data API Documentation](https://fiscaldata.treasury.gov/api-documentation/). The goal of this demonstration is to break down the process of creating an API call, sending the request, and parsing the response. In practice, many APIs have 'wrappers' or 'packages' in various programming languages that simplify the coding process to interact with the APIs.
 

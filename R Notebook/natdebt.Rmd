@@ -156,6 +156,7 @@ dfresponse1 = fromJSON(response1body)
 myData1 = dfresponse1$data
 myData1
 ```
+
 **Alternatively, we can simply use the `fromJSON()` function on `req1`, which will cut out the intermediate steps (note: `myData1` and `myData` are identical).**
 
 ```{r req1df2}

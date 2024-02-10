@@ -35,7 +35,7 @@ library(zoo)
 * The [zoo package](https://cran.r-project.org/package=zoo) contains the `rollmean()` function that is used in some visualizations.
 * The [rmarkdown package](https://cran.r-project.org/package=rmarkdown) is used to generate this R Notebook.
 
-Since the rmarkdown functionality is built into RStudio, this one is automatically loaded when we open the RStudio. So no need to use the `library()` function for this one. Another observation to make about the code chunk above is that it is labeled as 'setup', which is a special name, which the R Notebook will recognize and automatically run prior to running any other code chunk. This is useful for loading in packages and setting up other global options that will be used throughout the notebook. 
+Since the rmarkdown functionality is built into RStudio, this last one is automatically loaded when you open RStudio. So no need to use the `library()` function for it. Another observation to make about the code chunk above is that it is labeled as `setup`, which is a special name, which the R Notebook will recognize and automatically run prior to running any other code chunk. This is useful for loading in packages and setting up other global options that will be used throughout the notebook. 
 
 Then if you wish to try and update the versions of the various R packages in the lock file, you can use the `renv::update()` function to update the packages in the project library. However, it is possible that these updates could break the code in this notebook. If so, you may need to adapt the code to work with the updated packages.
 
@@ -156,6 +156,7 @@ dfresponse1 = fromJSON(response1body)
 myData1 = dfresponse1$data
 myData1
 ```
+
 **Alternatively, we can simply use the `fromJSON()` function on `req1`, which will cut out the intermediate steps (note: `myData1` and `myData` are identical).**
 
 ```{r req1df2}

@@ -1,6 +1,6 @@
 U.S. National Debt Over Time
 ================
-Last updated: 2024-01-28
+Last updated: 2024-02-10
 
 ## Preliminary Work: Install/Load Packages
 
@@ -60,11 +60,11 @@ library(zoo)
 - The [rmarkdown package](https://cran.r-project.org/package=rmarkdown)
   is used to generate this R Notebook.
 
-Since the rmarkdown functionality is built into RStudio, this one is
-automatically loaded when we open the RStudio. So no need to use the
-`library()` function for this one. Another observation to make about the
-code chunk above is that it is labeled as ‘setup’, which is a special
-name, which the R Notebook will recognize and automatically run prior to
+Since the rmarkdown functionality is built into RStudio, this last one
+is automatically loaded when you open RStudio. So no need to use the
+`library()` function for it. Another observation to make about the code
+chunk above is that it is labeled as `setup`, which is a special name,
+which the R Notebook will recognize and automatically run prior to
 running any other code chunk. This is useful for loading in packages and
 setting up other global options that will be used throughout the
 notebook.
@@ -253,9 +253,9 @@ response1 |> resp_raw()
 ```
 
     ## HTTP/1.1 200 OK
-    ## Date: Mon, 29 Jan 2024 03:17:22 GMT
+    ## Date: Sat, 10 Feb 2024 23:24:28 GMT
     ## Content-Type: application/json
-    ## Content-Length: 853
+    ## Content-Length: 845
     ## Connection: keep-alive
     ## Server: nginx
     ## X-Content-Type-Options: nosniff
@@ -271,9 +271,9 @@ response1 |> resp_raw()
     ## X-Frame-Options: SAMEORIGIN
     ## X-XSS-Protection: 1; mode=block
     ## Access-Control-Allow-Origin: *
-    ## Set-Cookie: cookiesession1=678A3E0EE2ADD7206F61FC9743731145;Expires=Tue, 28 Jan 2025 03:17:22 GMT;Path=/;HttpOnly
+    ## Set-Cookie: cookiesession1=678A3E0FF5CD42E4BDA517AF6A00D462;Expires=Sun, 09 Feb 2025 23:24:28 GMT;Path=/;HttpOnly
     ## 
-    ## {"data":[{"record_date":"2023-12-31","security_type_desc":"Marketable","security_class_desc":"Bills","debt_held_public_mil_amt":"5674825.4005","intragov_hold_mil_amt":"955.663","total_mil_amt":"5675781.0635","src_line_nbr":"1","record_fiscal_year":"2024","record_fiscal_quarter":"1","record_calendar_year":"2023","record_calendar_quarter":"4","record_calendar_month":"12","record_calendar_day":"31"}],"meta":{"count":1,"labels":{"record_date":"Record Date","security_type_desc":"Security Type Description","security_class_desc":"Security Class Description","debt_held_public_mil_amt":"Debt Held by the Public (in Millions)","intragov_hold_mil_amt":"Intragovernmental Holdings (in Millions)","total_mil_amt":"Total Public Debt Outstanding (in Millions)","src_line_nbr":"Source Line Number","record_fiscal_year":"Fiscal Year","record_fiscal_quarter":"Fiscal Quarter Number","record_calendar_year":"Calendar Year","record_calendar_quarter":"Calendar Quarter Number","record_calendar_month":"Calendar Month Number","record_calendar_day":"Calendar Day Number"},"dataTypes":{"record_date":"DATE","security_type_desc":"STRING","security_class_desc":"STRING","debt_held_public_mil_amt":"CURRENCY0","intragov_hold_mil_amt":"CURRENCY0","total_mil_amt":"CURRENCY0","src_line_nbr":"INTEGER","record_fiscal_year":"YEAR","record_fiscal_quarter":"QUARTER","record_calendar_year":"YEAR","record_calendar_quarter":"QUARTER","record_calendar_month":"MONTH","record_calendar_day":"DAY"},"dataFormats":{"record_date":"YYYY-MM-DD","security_type_desc":"String","security_class_desc":"String","debt_held_public_mil_amt":"$1,000,000","intragov_hold_mil_amt":"$1,000,000","total_mil_amt":"$1,000,000","src_line_nbr":"10","record_fiscal_year":"YYYY","record_fiscal_quarter":"Q","record_calendar_year":"YYYY","record_calendar_quarter":"Q","record_calendar_month":"MM","record_calendar_day":"DD"},"total-count":4211,"total-pages":4211},"links":{"self":"&page%5Bnumber%5D=1&page%5Bsize%5D=1","first":"&page%5Bnumber%5D=1&page%5Bsize%5D=1","prev":null,"next":"&page%5Bnumber%5D=2&page%5Bsize%5D=1","last":"&page%5Bnumber%5D=4211&page%5Bsize%5D=1"}}
+    ## {"data":[{"record_date":"2024-01-31","security_type_desc":"Marketable","security_class_desc":"Bills","debt_held_public_mil_amt":"5779020.7915","intragov_hold_mil_amt":"1222.998","total_mil_amt":"5780243.7895","src_line_nbr":"1","record_fiscal_year":"2024","record_fiscal_quarter":"2","record_calendar_year":"2024","record_calendar_quarter":"1","record_calendar_month":"01","record_calendar_day":"31"}],"meta":{"count":1,"labels":{"record_date":"Record Date","security_type_desc":"Security Type Description","security_class_desc":"Security Class Description","debt_held_public_mil_amt":"Debt Held by the Public (in Millions)","intragov_hold_mil_amt":"Intragovernmental Holdings (in Millions)","total_mil_amt":"Total Public Debt Outstanding (in Millions)","src_line_nbr":"Source Line Number","record_fiscal_year":"Fiscal Year","record_fiscal_quarter":"Fiscal Quarter Number","record_calendar_year":"Calendar Year","record_calendar_quarter":"Calendar Quarter Number","record_calendar_month":"Calendar Month Number","record_calendar_day":"Calendar Day Number"},"dataTypes":{"record_date":"DATE","security_type_desc":"STRING","security_class_desc":"STRING","debt_held_public_mil_amt":"CURRENCY0","intragov_hold_mil_amt":"CURRENCY0","total_mil_amt":"CURRENCY0","src_line_nbr":"INTEGER","record_fiscal_year":"YEAR","record_fiscal_quarter":"QUARTER","record_calendar_year":"YEAR","record_calendar_quarter":"QUARTER","record_calendar_month":"MONTH","record_calendar_day":"DAY"},"dataFormats":{"record_date":"YYYY-MM-DD","security_type_desc":"String","security_class_desc":"String","debt_held_public_mil_amt":"$1,000,000","intragov_hold_mil_amt":"$1,000,000","total_mil_amt":"$1,000,000","src_line_nbr":"10","record_fiscal_year":"YYYY","record_fiscal_quarter":"Q","record_calendar_year":"YYYY","record_calendar_quarter":"Q","record_calendar_month":"MM","record_calendar_day":"DD"},"total-count":4225,"total-pages":4225},"links":{"self":"&page%5Bnumber%5D=1&page%5Bsize%5D=1","first":"&page%5Bnumber%5D=1&page%5Bsize%5D=1","prev":null,"next":"&page%5Bnumber%5D=2&page%5Bsize%5D=1","last":"&page%5Bnumber%5D=4225&page%5Bsize%5D=1"}}
 
 #### Explore the Response
 
@@ -289,7 +289,7 @@ response1body = resp_body_string(response1)
 response1body
 ```
 
-    ## [1] "{\"data\":[{\"record_date\":\"2023-12-31\",\"security_type_desc\":\"Marketable\",\"security_class_desc\":\"Bills\",\"debt_held_public_mil_amt\":\"5674825.4005\",\"intragov_hold_mil_amt\":\"955.663\",\"total_mil_amt\":\"5675781.0635\",\"src_line_nbr\":\"1\",\"record_fiscal_year\":\"2024\",\"record_fiscal_quarter\":\"1\",\"record_calendar_year\":\"2023\",\"record_calendar_quarter\":\"4\",\"record_calendar_month\":\"12\",\"record_calendar_day\":\"31\"}],\"meta\":{\"count\":1,\"labels\":{\"record_date\":\"Record Date\",\"security_type_desc\":\"Security Type Description\",\"security_class_desc\":\"Security Class Description\",\"debt_held_public_mil_amt\":\"Debt Held by the Public (in Millions)\",\"intragov_hold_mil_amt\":\"Intragovernmental Holdings (in Millions)\",\"total_mil_amt\":\"Total Public Debt Outstanding (in Millions)\",\"src_line_nbr\":\"Source Line Number\",\"record_fiscal_year\":\"Fiscal Year\",\"record_fiscal_quarter\":\"Fiscal Quarter Number\",\"record_calendar_year\":\"Calendar Year\",\"record_calendar_quarter\":\"Calendar Quarter Number\",\"record_calendar_month\":\"Calendar Month Number\",\"record_calendar_day\":\"Calendar Day Number\"},\"dataTypes\":{\"record_date\":\"DATE\",\"security_type_desc\":\"STRING\",\"security_class_desc\":\"STRING\",\"debt_held_public_mil_amt\":\"CURRENCY0\",\"intragov_hold_mil_amt\":\"CURRENCY0\",\"total_mil_amt\":\"CURRENCY0\",\"src_line_nbr\":\"INTEGER\",\"record_fiscal_year\":\"YEAR\",\"record_fiscal_quarter\":\"QUARTER\",\"record_calendar_year\":\"YEAR\",\"record_calendar_quarter\":\"QUARTER\",\"record_calendar_month\":\"MONTH\",\"record_calendar_day\":\"DAY\"},\"dataFormats\":{\"record_date\":\"YYYY-MM-DD\",\"security_type_desc\":\"String\",\"security_class_desc\":\"String\",\"debt_held_public_mil_amt\":\"$1,000,000\",\"intragov_hold_mil_amt\":\"$1,000,000\",\"total_mil_amt\":\"$1,000,000\",\"src_line_nbr\":\"10\",\"record_fiscal_year\":\"YYYY\",\"record_fiscal_quarter\":\"Q\",\"record_calendar_year\":\"YYYY\",\"record_calendar_quarter\":\"Q\",\"record_calendar_month\":\"MM\",\"record_calendar_day\":\"DD\"},\"total-count\":4211,\"total-pages\":4211},\"links\":{\"self\":\"&page%5Bnumber%5D=1&page%5Bsize%5D=1\",\"first\":\"&page%5Bnumber%5D=1&page%5Bsize%5D=1\",\"prev\":null,\"next\":\"&page%5Bnumber%5D=2&page%5Bsize%5D=1\",\"last\":\"&page%5Bnumber%5D=4211&page%5Bsize%5D=1\"}}"
+    ## [1] "{\"data\":[{\"record_date\":\"2024-01-31\",\"security_type_desc\":\"Marketable\",\"security_class_desc\":\"Bills\",\"debt_held_public_mil_amt\":\"5779020.7915\",\"intragov_hold_mil_amt\":\"1222.998\",\"total_mil_amt\":\"5780243.7895\",\"src_line_nbr\":\"1\",\"record_fiscal_year\":\"2024\",\"record_fiscal_quarter\":\"2\",\"record_calendar_year\":\"2024\",\"record_calendar_quarter\":\"1\",\"record_calendar_month\":\"01\",\"record_calendar_day\":\"31\"}],\"meta\":{\"count\":1,\"labels\":{\"record_date\":\"Record Date\",\"security_type_desc\":\"Security Type Description\",\"security_class_desc\":\"Security Class Description\",\"debt_held_public_mil_amt\":\"Debt Held by the Public (in Millions)\",\"intragov_hold_mil_amt\":\"Intragovernmental Holdings (in Millions)\",\"total_mil_amt\":\"Total Public Debt Outstanding (in Millions)\",\"src_line_nbr\":\"Source Line Number\",\"record_fiscal_year\":\"Fiscal Year\",\"record_fiscal_quarter\":\"Fiscal Quarter Number\",\"record_calendar_year\":\"Calendar Year\",\"record_calendar_quarter\":\"Calendar Quarter Number\",\"record_calendar_month\":\"Calendar Month Number\",\"record_calendar_day\":\"Calendar Day Number\"},\"dataTypes\":{\"record_date\":\"DATE\",\"security_type_desc\":\"STRING\",\"security_class_desc\":\"STRING\",\"debt_held_public_mil_amt\":\"CURRENCY0\",\"intragov_hold_mil_amt\":\"CURRENCY0\",\"total_mil_amt\":\"CURRENCY0\",\"src_line_nbr\":\"INTEGER\",\"record_fiscal_year\":\"YEAR\",\"record_fiscal_quarter\":\"QUARTER\",\"record_calendar_year\":\"YEAR\",\"record_calendar_quarter\":\"QUARTER\",\"record_calendar_month\":\"MONTH\",\"record_calendar_day\":\"DAY\"},\"dataFormats\":{\"record_date\":\"YYYY-MM-DD\",\"security_type_desc\":\"String\",\"security_class_desc\":\"String\",\"debt_held_public_mil_amt\":\"$1,000,000\",\"intragov_hold_mil_amt\":\"$1,000,000\",\"total_mil_amt\":\"$1,000,000\",\"src_line_nbr\":\"10\",\"record_fiscal_year\":\"YYYY\",\"record_fiscal_quarter\":\"Q\",\"record_calendar_year\":\"YYYY\",\"record_calendar_quarter\":\"Q\",\"record_calendar_month\":\"MM\",\"record_calendar_day\":\"DD\"},\"total-count\":4225,\"total-pages\":4225},\"links\":{\"self\":\"&page%5Bnumber%5D=1&page%5Bsize%5D=1\",\"first\":\"&page%5Bnumber%5D=1&page%5Bsize%5D=1\",\"prev\":null,\"next\":\"&page%5Bnumber%5D=2&page%5Bsize%5D=1\",\"last\":\"&page%5Bnumber%5D=4225&page%5Bsize%5D=1\"}}"
 
 If we apply the `resp_body_json()` and `str()` functions to the
 response, this gives a bit more structure to the data retrieved from the
@@ -303,18 +303,18 @@ response1 |> resp_body_json() |> str()
     ## List of 3
     ##  $ data :List of 1
     ##   ..$ :List of 13
-    ##   .. ..$ record_date             : chr "2023-12-31"
+    ##   .. ..$ record_date             : chr "2024-01-31"
     ##   .. ..$ security_type_desc      : chr "Marketable"
     ##   .. ..$ security_class_desc     : chr "Bills"
-    ##   .. ..$ debt_held_public_mil_amt: chr "5674825.4005"
-    ##   .. ..$ intragov_hold_mil_amt   : chr "955.663"
-    ##   .. ..$ total_mil_amt           : chr "5675781.0635"
+    ##   .. ..$ debt_held_public_mil_amt: chr "5779020.7915"
+    ##   .. ..$ intragov_hold_mil_amt   : chr "1222.998"
+    ##   .. ..$ total_mil_amt           : chr "5780243.7895"
     ##   .. ..$ src_line_nbr            : chr "1"
     ##   .. ..$ record_fiscal_year      : chr "2024"
-    ##   .. ..$ record_fiscal_quarter   : chr "1"
-    ##   .. ..$ record_calendar_year    : chr "2023"
-    ##   .. ..$ record_calendar_quarter : chr "4"
-    ##   .. ..$ record_calendar_month   : chr "12"
+    ##   .. ..$ record_fiscal_quarter   : chr "2"
+    ##   .. ..$ record_calendar_year    : chr "2024"
+    ##   .. ..$ record_calendar_quarter : chr "1"
+    ##   .. ..$ record_calendar_month   : chr "01"
     ##   .. ..$ record_calendar_day     : chr "31"
     ##  $ meta :List of 6
     ##   ..$ count      : int 1
@@ -360,14 +360,14 @@ response1 |> resp_body_json() |> str()
     ##   .. ..$ record_calendar_quarter : chr "Q"
     ##   .. ..$ record_calendar_month   : chr "MM"
     ##   .. ..$ record_calendar_day     : chr "DD"
-    ##   ..$ total-count: int 4211
-    ##   ..$ total-pages: int 4211
+    ##   ..$ total-count: int 4225
+    ##   ..$ total-pages: int 4225
     ##  $ links:List of 5
     ##   ..$ self : chr "&page%5Bnumber%5D=1&page%5Bsize%5D=1"
     ##   ..$ first: chr "&page%5Bnumber%5D=1&page%5Bsize%5D=1"
     ##   ..$ prev : NULL
     ##   ..$ next : chr "&page%5Bnumber%5D=2&page%5Bsize%5D=1"
-    ##   ..$ last : chr "&page%5Bnumber%5D=4211&page%5Bsize%5D=1"
+    ##   ..$ last : chr "&page%5Bnumber%5D=4225&page%5Bsize%5D=1"
 
 Another neat way to explore the data is with the machine-level language
 that is being used in the data transmission. If we use the
@@ -381,7 +381,7 @@ response1 |> resp_body_raw() |> head(100)
 ```
 
     ##   [1] 7b 22 64 61 74 61 22 3a 5b 7b 22 72 65 63 6f 72 64 5f 64 61 74 65 22 3a 22
-    ##  [26] 32 30 32 33 2d 31 32 2d 33 31 22 2c 22 73 65 63 75 72 69 74 79 5f 74 79 70
+    ##  [26] 32 30 32 34 2d 30 31 2d 33 31 22 2c 22 73 65 63 75 72 69 74 79 5f 74 79 70
     ##  [51] 65 5f 64 65 73 63 22 3a 22 4d 61 72 6b 65 74 61 62 6c 65 22 2c 22 73 65 63
     ##  [76] 75 72 69 74 79 5f 63 6c 61 73 73 5f 64 65 73 63 22 3a 22 42 69 6c 6c 73 22
 
@@ -397,13 +397,13 @@ myData1
 ```
 
     ##   record_date security_type_desc security_class_desc debt_held_public_mil_amt
-    ## 1  2023-12-31         Marketable               Bills             5674825.4005
+    ## 1  2024-01-31         Marketable               Bills             5779020.7915
     ##   intragov_hold_mil_amt total_mil_amt src_line_nbr record_fiscal_year
-    ## 1               955.663  5675781.0635            1               2024
+    ## 1              1222.998  5780243.7895            1               2024
     ##   record_fiscal_quarter record_calendar_year record_calendar_quarter
-    ## 1                     1                 2023                       4
+    ## 1                     2                 2024                       1
     ##   record_calendar_month record_calendar_day
-    ## 1                    12                  31
+    ## 1                    01                  31
 
 **Alternatively, we can simply use the `fromJSON()` function on `req1`,
 which will cut out the intermediate steps (note: `myData1` and `myData`
@@ -416,13 +416,13 @@ myData
 ```
 
     ##   record_date security_type_desc security_class_desc debt_held_public_mil_amt
-    ## 1  2023-12-31         Marketable               Bills             5674825.4005
+    ## 1  2024-01-31         Marketable               Bills             5779020.7915
     ##   intragov_hold_mil_amt total_mil_amt src_line_nbr record_fiscal_year
-    ## 1               955.663  5675781.0635            1               2024
+    ## 1              1222.998  5780243.7895            1               2024
     ##   record_fiscal_quarter record_calendar_year record_calendar_quarter
-    ## 1                     1                 2023                       4
+    ## 1                     2                 2024                       1
     ##   record_calendar_month record_calendar_day
-    ## 1                    12                  31
+    ## 1                    01                  31
 
 #### Clean the Data Formatting
 
@@ -480,7 +480,7 @@ class(myData$debt_held_public_mil_amt)
 myData$debt_held_public_mil_amt/2
 ```
 
-    ## [1] 2837413
+    ## [1] 2889510
 
 ## Full API Request
 
@@ -525,67 +525,67 @@ head(debtdf,20)
 ```
 
     ##    record_date            security_type_desc
-    ## 1   2023-12-31                    Marketable
-    ## 2   2023-12-31                    Marketable
-    ## 3   2023-12-31                    Marketable
-    ## 4   2023-12-31                    Marketable
-    ## 5   2023-12-31                    Marketable
-    ## 6   2023-12-31                    Marketable
-    ## 7   2023-12-31              Total Marketable
-    ## 8   2023-12-31                 Nonmarketable
-    ## 9   2023-12-31                 Nonmarketable
-    ## 10  2023-12-31                 Nonmarketable
-    ## 11  2023-12-31                 Nonmarketable
-    ## 12  2023-12-31                 Nonmarketable
-    ## 13  2023-12-31           Total Nonmarketable
-    ## 14  2023-12-31 Total Public Debt Outstanding
-    ## 15  2023-11-30                    Marketable
-    ## 16  2023-11-30                    Marketable
-    ## 17  2023-11-30                    Marketable
-    ## 18  2023-11-30                    Marketable
-    ## 19  2023-11-30                    Marketable
-    ## 20  2023-11-30                    Marketable
+    ## 1   2024-01-31                    Marketable
+    ## 2   2024-01-31                    Marketable
+    ## 3   2024-01-31                    Marketable
+    ## 4   2024-01-31                    Marketable
+    ## 5   2024-01-31                    Marketable
+    ## 6   2024-01-31                    Marketable
+    ## 7   2024-01-31              Total Marketable
+    ## 8   2024-01-31                 Nonmarketable
+    ## 9   2024-01-31                 Nonmarketable
+    ## 10  2024-01-31                 Nonmarketable
+    ## 11  2024-01-31                 Nonmarketable
+    ## 12  2024-01-31                 Nonmarketable
+    ## 13  2024-01-31           Total Nonmarketable
+    ## 14  2024-01-31 Total Public Debt Outstanding
+    ## 15  2023-12-31                    Marketable
+    ## 16  2023-12-31                    Marketable
+    ## 17  2023-12-31                    Marketable
+    ## 18  2023-12-31                    Marketable
+    ## 19  2023-12-31                    Marketable
+    ## 20  2023-12-31                    Marketable
     ##                        security_class_desc debt_held_public_mil_amt
-    ## 1                                    Bills               5674825.40
-    ## 2                                    Notes              13753526.47
-    ## 3                                    Bonds               4347388.19
-    ## 4  Treasury Inflation-Protected Securities               2005719.21
-    ## 5                      Floating Rate Notes                571425.24
-    ## 6                   Federal Financing Bank                     0.00
-    ## 7                                        _              26352884.51
-    ## 8                          Domestic Series                 17292.84
-    ## 9        State and Local Government Series                 91536.42
-    ## 10        United States Savings Securities                171963.65
-    ## 11               Government Account Series                300580.62
-    ## 12                                   Other                  4259.51
-    ## 13                                       _                585633.03
-    ## 14                                       _              26938517.54
-    ## 15                                   Bills               5670154.83
-    ## 16                                   Notes              13724679.06
-    ## 17                                   Bonds               4326514.89
-    ## 18 Treasury Inflation-Protected Securities               1985764.49
-    ## 19                     Floating Rate Notes                545426.42
-    ## 20                  Federal Financing Bank                     0.00
+    ## 1                                    Bills              5779020.792
+    ## 2                                    Notes             13826190.108
+    ## 3                                    Bonds              4394498.427
+    ## 4  Treasury Inflation-Protected Securities              1965830.592
+    ## 5                      Floating Rate Notes               525534.644
+    ## 6                   Federal Financing Bank                    0.000
+    ## 7                                        _             26491074.563
+    ## 8                          Domestic Series                17191.626
+    ## 9        State and Local Government Series                89936.375
+    ## 10        United States Savings Securities               169338.626
+    ## 11               Government Account Series               300091.927
+    ## 12                                   Other                 4228.795
+    ## 13                                       _               580787.349
+    ## 14                                       _             27071861.911
+    ## 15                                   Bills              5674825.401
+    ## 16                                   Notes             13753526.471
+    ## 17                                   Bonds              4347388.190
+    ## 18 Treasury Inflation-Protected Securities              2005719.212
+    ## 19                     Floating Rate Notes               571425.238
+    ## 20                  Federal Financing Bank                    0.000
     ##    intragov_hold_mil_amt total_mil_amt
-    ## 1               955.6630   5675781.064
-    ## 2              4678.3695  13758204.841
-    ## 3              7164.7746   4354552.964
-    ## 4               504.8921   2006224.104
-    ## 5                27.3800    571452.618
+    ## 1              1222.9980   5780243.789
+    ## 2              4992.5857  13831182.694
+    ## 3              7049.6006   4401548.027
+    ## 4               474.4522   1966305.044
+    ## 5                31.1500    525565.794
     ## 6              5492.2060      5492.206
-    ## 7             18823.2852  26371707.797
-    ## 8                 0.0000     17292.835
-    ## 9                 0.0000     91536.420
-    ## 10                0.0000    171963.645
-    ## 11          7044152.7557   7344733.377
-    ## 12                0.0000      4259.510
-    ## 13          7044152.7557   7629785.787
-    ## 14          7062976.0409  34001493.584
-    ## 15              994.3880   5671149.218
-    ## 16             4931.5021  13729610.566
-    ## 17             7050.5346   4333565.422
-    ## 18              891.6254   1986656.112
-    ## 19               26.0100    545452.435
+    ## 7             19262.9925  26510337.555
+    ## 8                 0.0000     17191.626
+    ## 9                 0.0000     89936.375
+    ## 10                0.0000    169338.626
+    ## 11          7100025.5159   7400118.443
+    ## 12                0.0000      4228.795
+    ## 13          7100025.5159   7680811.865
+    ## 14          7119288.5083  34191150.420
+    ## 15              955.6630   5675781.064
+    ## 16             4678.3695  13758204.841
+    ## 17             7164.7746   4354552.964
+    ## 18              504.8921   2006224.104
+    ## 19               27.3800    571452.618
     ## 20             5492.2060      5492.206
 
 To make our figures a little cleaner later, we will also create a new
@@ -621,27 +621,27 @@ head(totaldebtdf,10)
 ```
 
     ##     record_date            security_type_desc security_class_desc
-    ## 14   2023-12-31 Total Public Debt Outstanding                   _
-    ## 28   2023-11-30 Total Public Debt Outstanding                   _
-    ## 42   2023-10-31 Total Public Debt Outstanding                   _
-    ## 56   2023-09-30 Total Public Debt Outstanding                   _
-    ## 70   2023-08-31 Total Public Debt Outstanding                   _
-    ## 84   2023-07-31 Total Public Debt Outstanding                   _
-    ## 98   2023-06-30 Total Public Debt Outstanding                   _
-    ## 112  2023-05-31 Total Public Debt Outstanding                   _
-    ## 126  2023-04-30 Total Public Debt Outstanding                   _
-    ## 141  2023-03-31 Total Public Debt Outstanding                   _
+    ## 14   2024-01-31 Total Public Debt Outstanding                   _
+    ## 28   2023-12-31 Total Public Debt Outstanding                   _
+    ## 42   2023-11-30 Total Public Debt Outstanding                   _
+    ## 56   2023-10-31 Total Public Debt Outstanding                   _
+    ## 70   2023-09-30 Total Public Debt Outstanding                   _
+    ## 84   2023-08-31 Total Public Debt Outstanding                   _
+    ## 98   2023-07-31 Total Public Debt Outstanding                   _
+    ## 112  2023-06-30 Total Public Debt Outstanding                   _
+    ## 126  2023-05-31 Total Public Debt Outstanding                   _
+    ## 140  2023-04-30 Total Public Debt Outstanding                   _
     ##     debt_held_public_mil_amt intragov_hold_mil_amt total_mil_amt total_tril_amt
-    ## 14                  26938518               7062976      34001494       34.00149
-    ## 28                  26843822               7034857      33878679       33.87868
-    ## 42                  26576222               7123358      33699580       33.69958
-    ## 56                  26330142               6837192      33167334       33.16733
-    ## 70                  26044051               6870099      32914149       32.91415
-    ## 84                  25708799               6899786      32608585       32.60859
-    ## 98                  25461998               6870276      32332274       32.33227
-    ## 112                 24630686               6833771      31464457       31.46446
-    ## 126                 24605068               6852747      31457815       31.45782
-    ## 141                 24693515               6764923      31458438       31.45844
+    ## 14                  27071862               7119289      34191150       34.19115
+    ## 28                  26938518               7062976      34001494       34.00149
+    ## 42                  26843822               7034857      33878679       33.87868
+    ## 56                  26576222               7123358      33699580       33.69958
+    ## 70                  26330142               6837192      33167334       33.16733
+    ## 84                  26044051               6870099      32914149       32.91415
+    ## 98                  25708799               6899786      32608585       32.60859
+    ## 112                 25461998               6870276      32332274       32.33227
+    ## 126                 24630686               6833771      31464457       31.46446
+    ## 140                 24605068               6852747      31457815       31.45782
 
 ## Plotting the Data
 
@@ -880,11 +880,11 @@ mean(totaldebtdf$annpct, na.rm=TRUE) |> round(2)
 sd(totaldebtdf$annpct, na.rm=TRUE) |> round(2)
 ```
 
-    ## [1] 9.79
+    ## [1] 9.77
 
 ``` r
 summary(totaldebtdf$annpct) |> round(2)
 ```
 
     ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
-    ##  -23.59    0.58    6.70    7.79   11.19   64.02       1
+    ##  -23.59    0.66    6.69    7.79   11.16   64.02       1
